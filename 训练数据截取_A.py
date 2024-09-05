@@ -1,18 +1,40 @@
+import logging
 import os
 import threading
 import time
 
 import torchvision
+from airtest.cli.parser import cli_setup
+from airtest.core.api import auto_setup
 from pynput import keyboard
 from pynput.keyboard import Key, Listener
 
 from Batch import create_masks
+from auto.王者荣耀.王者荣耀 import 退出王者荣耀
+from common.airtestProjectsCommon import get_now_img_txt, clean_log
 from resnet_utils import myResnet
 from 取训练数据 import *
 from 杂项 import *
 from 模型_策略梯度 import 智能体
 from 辅助功能 import 状态信息综合
 from 运行辅助 import *
+
+# 设置日志级别
+logger_airtest = logging.getLogger("airtest")
+logger_ppocr = logging.getLogger("ppocr")
+logger_airtest.setLevel(logging.ERROR)
+logger_ppocr.setLevel(logging.ERROR)
+# 清空存量日志
+clean_log()
+# 连接设备
+if not cli_setup():
+    auto_setup(
+        __file__,
+        logdir=True,
+        devices=["android:///"]
+    )
+# 获取当前文件绝对路径
+dir_path = os.path.dirname(os.path.abspath(__file__))
 
 # 雷电模拟器
 _DEVICE_ID = 'emulator-5554'
@@ -30,9 +52,11 @@ index = 0
 数据字典 = {'interval_times': 0, 'max_interval': 0., 'interval_location': []}
 count = 0
 count_dict = {'first_time': 0., 'first_p_to_second_r': 0.}
-keyBoard_dict = {'Key.enter': '\n',
-                 'Key.space': ' ',
-                 "Key.tab": '\t'}
+keyBoard_dict = {
+    'Key.enter': '\n',
+    'Key.space': ' ',
+    "Key.tab": '\t'
+}
 
 W键按下 = False
 S键按下 = False
@@ -114,7 +138,6 @@ def on_press(key):
     if 操作 != '':
         操作列.append(操作)
     lock.release()
-    # print("正在按压:", key_name)
 
 
 # 监听释放
@@ -144,6 +167,7 @@ def on_release(key):
 
 # 开始监听
 def start_listen():
+    # noinspection PyTypeChecker
     with Listener(on_press=on_press, on_release=on_release) as listener:
         listener.join()
 
@@ -153,26 +177,26 @@ def 处理方向():
     # S键按下 = False
     # A键按下 = False
     # D键按下 = False
-    if Q键按下 == True:
-        return ('移动停')
+    if Q键按下 is True:
+        return '移动停'
     elif W键按下 == True and S键按下 == False and A键按下 == False and D键按下 == False:
-        return ('上移')
+        return '上移'
     elif W键按下 == False and S键按下 == True and A键按下 == False and D键按下 == False:
-        return ('下移')
+        return '下移'
     elif W键按下 == False and S键按下 == False and A键按下 == True and D键按下 == False:
-        return ('左移')
+        return '左移'
     elif W键按下 == False and S键按下 == False and A键按下 == False and D键按下 == True:
-        return ('右移')
+        return '右移'
     elif W键按下 == True and S键按下 == False and A键按下 == True and D键按下 == False:
-        return ('左上移')
+        return '左上移'
     elif W键按下 == True and S键按下 == False and A键按下 == False and D键按下 == True:
-        return ('右上移')
+        return '右上移'
     elif W键按下 == False and S键按下 == True and A键按下 == True and D键按下 == False:
-        return ('左下移')
+        return '左下移'
     elif W键按下 == False and S键按下 == True and A键按下 == False and D键按下 == True:
-        return ('右下移')
+        return '右下移'
     else:
-        return ('')
+        return ''
 
 
 加三技能 = 'd 0 552 1878 100\nc\nu 0\nc\n'
@@ -201,11 +225,12 @@ with open(操作查询路径, encoding='utf8') as f:
 device = torch.device("cuda:0" if (torch.cuda.is_available()) else "cpu")
 mod = torchvision.models.resnet101(pretrained=True).eval().cuda(device).requires_grad_(False)
 resnet101 = myResnet(mod)
-
+circulation_stop = False
 while True:
-    txt = os
+
     if not AI打开:
         continue
+
     图片路径 = 训练数据保存目录 + '/{}/'.format(str(int(time.time())))
     os.mkdir(图片路径)
 
@@ -223,18 +248,21 @@ while True:
     计数 = 0
     time_start = time.time()
     旧指令 = '移动停'
-    for i in range(100000):
+    for i in range(100 * 1000):
         if not AI打开:
             break
         try:
             imgA = 取图(窗口名称)
         except:
             AI打开 = False
-            print('取图失败')
+            print('取图失败！')
             break
-
         计时开始 = time.time()
-
+        if i % 1000 == 0:
+            txt = get_now_img_txt(dir_path)
+            if '继续' in txt:
+                circulation_stop = True
+                break
         if 图片张量.shape[0] == 0:
 
             img = np.array(imgA)
@@ -250,6 +278,7 @@ while True:
             img = torch.from_numpy(img).cuda(device).unsqueeze(0).permute(0, 3, 2, 1) / 255
             _, out = resnet101(img)
             图片张量 = torch.cat((图片张量, out.reshape(1, 6 * 6 * 2048)), 0)
+            # noinspection PyUnboundLocalVariable
             操作序列 = np.append(操作序列, 动作)
 
         else:
@@ -300,7 +329,7 @@ while True:
                     lock.acquire()
                     del 操作列[0]
                     lock.release()
-                elif 攻击态 == True:
+                elif 攻击态 is True:
                     操作词典['动作操作'] = '攻击'
 
                 else:
@@ -397,7 +426,12 @@ while True:
                 # pygame.mixer.music.play()
                 print("此处可有音乐")
                 time.sleep(1)
-
-    记录文件.close()
-    time.sleep(1)
-    print('AI打开', AI打开)
+    if circulation_stop is True:
+        记录文件.close()
+        设备.stop()
+        退出王者荣耀()
+        break
+    else:
+        记录文件.close()
+        time.sleep(1)
+        print('AI打开', AI打开)
