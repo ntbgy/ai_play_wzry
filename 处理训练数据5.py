@@ -8,7 +8,7 @@ from PIL import Image
 import json
 from resnet_utils import myResnet
 
-操作记录 = '../训练数据样本/未用'
+操作记录 = '训练数据样本/未用'
 if not os.path.exists(操作记录):
     os.makedirs(操作记录)
 

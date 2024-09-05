@@ -14,10 +14,10 @@ from 模型_策略梯度 import 智能体
 状态列表 = []
 for K in 状态辞典B:
     状态列表.append(K)
-训练数据保存目录 = '../训练数据样本/未用'
+训练数据保存目录 = '训练数据样本/未用'
 if not os.path.exists(训练数据保存目录):
     os.makedirs(训练数据保存目录)
-for root, dirs, files in os.walk('../训练数据样本/未用'):
+for root, dirs, files in os.walk('训练数据样本/未用'):
     if len(dirs) > 0:
         break
 
@@ -52,7 +52,7 @@ time_start = time.time()
 for j in range(100):
     # random.shuffle(dirs)
     for 号 in dirs:
-        预处理数据 = '../训练数据样本/未用/' + 号 + '/图片_操作预处理数据2.npz'
+        预处理数据 = '训练数据样本/未用/' + 号 + '/图片_操作预处理数据2.npz'
         if os.path.isfile(预处理数据):
             npz文件 = np.load(预处理数据, allow_pickle=True)
             图片张量np, 操作序列 = npz文件["图片张量np"], npz文件["操作序列"]
