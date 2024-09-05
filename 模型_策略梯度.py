@@ -253,15 +253,6 @@ class 智能体:
 
         config = TransformerConfig()
         model = get_model(config, 130, 模型名称)
-        # model_dict = model.state_dict()
-        #
-        # pretrained_dict = torch.load('weights/model_weights_2021-05-7D11')
-        #
-        # pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_dict}
-        #
-        # model_dict.update(pretrained_dict)
-        #
-        # model.load_state_dict(model_dict)
 
         model = model.cuda(device)
         self.动作 = model

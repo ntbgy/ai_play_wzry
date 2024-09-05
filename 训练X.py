@@ -28,8 +28,7 @@ if os.path.isfile(词数词典路径) and os.path.isfile(数_词表路径):
 with open(词数词典路径, encoding='utf8') as f:
     词数词典 = json.load(f)
 device = torch.device("cuda:0" if (torch.cuda.is_available()) else "cpu")
-#
-#
+
 config = TransformerConfig()
 模型路径 = 'model_weights_2021-05-7D'
 
@@ -114,10 +113,7 @@ for j in range(100):
                 if 图片_分_torch.shape[0] != 操作_分_torch.shape[0]:
                     continue
 
-                状态 = {}
-                状态['操作序列'] = 操作_分_枝
-                状态['图片张量'] = 图片_分_枝
-                状态['trg_mask'] = trg_mask
+                状态 = {'操作序列': 操作_分_枝, '图片张量': 图片_分_枝, 'trg_mask': trg_mask}
 
                 动作, 动作可能性, 评价 = 智能体.选择动作批量(状态, device, 目标输出_分_torch, True)
                 实际输出, _ = model_判断状态(图片_分_torch, 操作序列A_torch, trg_mask)
