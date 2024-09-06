@@ -68,17 +68,19 @@ def 离线1v1():
 def 离线5v5(dir_path):
     # 需要先手工登录一个账号，退出了不行~
     txt = get_now_img_txt(dir_path)
-    # if '开始游戏' not in txt:
-    #     stop_app("com.tencent.tmgp.sgame")
-    #     sleep(1.0)
-    #     home()
-    #     sleep(1.0)
-    #     start_app("com.tencent.tmgp.sgame")
-    #     sleep(20)
-    # touch(Template(filename='屏幕截图 2024-09-06 082752.png'))
     if '返回大厅' in txt:
         ocr_now_touch('返回大厅', dir_path)
-        sleep(1)
+        sleep(3)
+    elif '5v5模式' not in txt:
+        # 直接重启吧~
+        stop_app("com.tencent.tmgp.sgame")
+        sleep(1.0)
+        home()
+        sleep(1.0)
+        start_app("com.tencent.tmgp.sgame")
+        sleep(20)
+        touch(Template(filename='屏幕截图 2024-09-06 082752.png'))
+        sleep(2)
     ocr_now_touch('5v5模式', dir_path)
     sleep(1)
     ocr_now_touch('开始练习', dir_path)
@@ -94,7 +96,7 @@ def 离线5v5(dir_path):
     sleep(1)
     ocr_now_touch('确定', dir_path)
     sleep(1)
-    return '开始离线5v5'
+    print('开始离线5v5')
 
 if __name__ == '__main__':
     # 设置日志级别

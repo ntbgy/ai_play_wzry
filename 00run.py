@@ -46,19 +46,23 @@ def check_game_status(process):
         process.terminate()
 
 def run():
-    for _ in range(35):
+    for i in range(35):
+        logger.info(f'第{i+1}局游戏开始！')
         start_game()
         script_path = os.path.join(dir_path, '01训练数据截取.py')
         process = subprocess.Popen([r'C:\Users\ntbgy\.conda\envs\wzry38\python.exe', script_path])
         stop_event = threading.Event()
+        time.sleep(6 * 60)
         check_thread = threading.Thread(target=check_game_status, args=(process,))
         check_thread.start()
         check_thread.join()
         logger.info("结束 AI 线程")
         time.sleep(5)
+        logger.info(f'第{i + 1}局游戏结束！')
 
     os.system(r'C:\Users\ntbgy\.conda\envs\wzry38\python.exe 02处理训练数据.py')
     os.system(r'C:\Users\ntbgy\.conda\envs\wzry38\python.exe 03训练主模型.py')
+    logger.info('done')
 
 if __name__ == '__main__':
     try:
