@@ -88,8 +88,11 @@ def clean_log():
     # 清空日志
     if not os.path.isdir('./log'):
         return
-    for name in os.listdir('./log'):
-        os.remove(f'./log/{name}')
+    try:
+        for name in os.listdir('./log'):
+            os.remove(f'./log/{name}')
+    except PermissionError as e:
+        print(e)
 
 
 def my_cv_imread(filepath):

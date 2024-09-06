@@ -8,7 +8,7 @@ from pynput import keyboard
 from pynput.keyboard import Key, Listener
 
 from Batch import create_masks
-from common.airtestProjectsCommon import get_now_img_txt, clean_log, ocr_now_touch
+from common.airtestProjectsCommon import get_now_img_txt, ocr_now_touch
 from common.env import training_data_save_directory, device_id, scrcpy_windows_name
 from common.my_logger import logger
 from resnet_utils import myResnet
@@ -23,8 +23,6 @@ logger_airtest = logging.getLogger("airtest")
 logger_ppocr = logging.getLogger("ppocr")
 logger_airtest.setLevel(logging.CRITICAL)
 logger_ppocr.setLevel(logging.CRITICAL)
-# 清空存量日志
-clean_log()
 # 连接设备
 if not cli_setup():
     auto_setup(

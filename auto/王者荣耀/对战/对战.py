@@ -1,6 +1,7 @@
 import logging
 
 from airtest.cli.parser import cli_setup
+from airtest.report.report import simple_report
 
 from common.airtestProjectsCommon import *
 
@@ -64,7 +65,36 @@ def 离线1v1():
     ocr_now_touch('开始对战')
     sleep(5)
     return '开始对战'
-
+def 离线5v5(dir_path):
+    # 需要先手工登录一个账号，退出了不行~
+    txt = get_now_img_txt(dir_path)
+    # if '开始游戏' not in txt:
+    #     stop_app("com.tencent.tmgp.sgame")
+    #     sleep(1.0)
+    #     home()
+    #     sleep(1.0)
+    #     start_app("com.tencent.tmgp.sgame")
+    #     sleep(20)
+    # touch(Template(filename='屏幕截图 2024-09-06 082752.png'))
+    if '返回大厅' in txt:
+        ocr_now_touch('返回大厅', dir_path)
+        sleep(1)
+    ocr_now_touch('5v5模式', dir_path)
+    sleep(1)
+    ocr_now_touch('开始练习', dir_path)
+    sleep(1)
+    # touch(Template(filename='屏幕截图 2024-09-06 083209.png'))
+    touch((694, 666))
+    sleep(1)
+    ocr_now_touch('射手', dir_path)
+    sleep(1)
+    touch(Template(filename='屏幕截图 2024-09-06 083341.png'))
+    sleep(1)
+    ocr_now_touch('确定', dir_path)
+    sleep(1)
+    ocr_now_touch('确定', dir_path)
+    sleep(1)
+    return '开始离线5v5'
 
 if __name__ == '__main__':
     # 设置日志级别
@@ -83,4 +113,11 @@ if __name__ == '__main__':
         )
     # 获取当前文件绝对路径
     dir_path = os.path.dirname(os.path.abspath(__file__))
-    离线1v1()
+    try:
+        离线5v5(dir_path)
+    except:
+        pass
+    # 生成报告
+    simple_report(__file__, logpath=True, output=f"{dir_path}\\log\\log.html")
+    # 打开报告
+    os.startfile(f"{dir_path}\\log\\log.html")
