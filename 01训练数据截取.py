@@ -4,12 +4,12 @@ import threading
 import torchvision
 from airtest.cli.parser import cli_setup
 from airtest.core.api import *
-from airtest.report.report import simple_report
 from pynput import keyboard
 from pynput.keyboard import Key, Listener
 
 from Batch import create_masks
 from common.airtestProjectsCommon import get_now_img_txt, clean_log, ocr_now_touch
+from common.env import training_data_save_directory, device_id, scrcpy_windows_name
 from common.my_logger import logger
 from resnet_utils import myResnet
 from 取训练数据 import *
@@ -34,10 +34,6 @@ if not cli_setup():
     )
 # 获取当前文件绝对路径
 dir_path = os.path.dirname(os.path.abspath(__file__))
-# 雷电模拟器
-_device_id = 'emulator-5554'
-windows_name = "LIO-AN00"
-training_data_save_directory = 'E:/训练数据样本/未用'
 if not os.path.exists(training_data_save_directory):
     os.makedirs(training_data_save_directory)
 lock = threading.Lock()
@@ -59,7 +55,6 @@ Q键按下 = False
 AI打开 = True
 操作列 = []
 自动 = 0
-circulation_stop = False
 智能体 = 智能体(
     动作数=7,
     并行条目数=100,
@@ -69,7 +64,8 @@ circulation_stop = False
 )
 
 
-def 返回大厅并重新开始1v1(txt=None):
+def 单机模式返回大厅并重新开始1v1(txt=None):
+    """不知道为什么后面调用，airtest的touch会点不了，是某个touch没有释放么？"""
     if txt is None:
         txt = get_now_img_txt()
     if '返回大厅' in txt:
@@ -99,19 +95,17 @@ def 返回大厅并重新开始1v1(txt=None):
     ocr_now_touch('开始对战')
     sleep(3)
 
-    return True
 
-
-txt = get_now_img_txt(dir_path)
-if '返回大厅' in txt or '开始练习' in txt:
-    try:
-        返回大厅并重新开始1v1(txt)
-    except TargetNotFoundError as e:
-        # 生成报告
-        simple_report(__file__, logpath=True, output=f"{dir_path}\\log\\log.html")
-        # 打开报告
-        os.startfile(f"{dir_path}\\log\\log.html")
-        raise TargetNotFoundError(e)
+# txt = get_now_img_txt(dir_path)
+# if '返回大厅' in txt or '开始练习' in txt:
+#     try:
+#         返回大厅并重新开始1v1(txt)
+#     except TargetNotFoundError as e:
+#         # 生成报告
+#         simple_report(__file__, logpath=True, output=f"{dir_path}\\log\\log.html")
+#         # 打开报告
+#         os.startfile(f"{dir_path}\\log\\log.html")
+#         raise TargetNotFoundError(e)
 
 
 def get_key_name(key):
@@ -123,14 +117,12 @@ def get_key_name(key):
 
 # 监听按压
 def on_press(key):
-    global circulation_stop, fun_start, time_interval, index, \
+    global fun_start, time_interval, index, \
         数据字典, count, count_dict, W键按下, \
         S键按下, A键按下, D键按下, 手动模式, \
         操作列, AI打开, 攻击放开, Q键按下, 攻击态
     key_name = get_key_name(key).lower()
     manual_manipulation = ''
-    if key_name == '0':
-        circulation_stop = True
     if key_name == 'w':
         W键按下 = True
     elif key_name == 'a':
@@ -228,13 +220,13 @@ def 处理方向():
         return ''
 
 
+th = threading.Thread(target=start_listen, )
+th.start()  # 启动线程
+
 词数词典路径 = "./json/词_数表.json"
 数_词表路径 = "./json/数_词表.json"
 操作查询路径 = "./json/名称_操作.json"
 操作词典 = {"图片号": "0", "移动操作": "无移动", "动作操作": "无动作"}
-th = threading.Thread(target=start_listen, )
-th.start()  # 启动线程
-
 if os.path.isfile(词数词典路径) and os.path.isfile(数_词表路径):
     词_数表, 数_词表 = 读出引索(词数词典路径, 数_词表路径)
 else:
@@ -244,177 +236,170 @@ with open(词数词典路径, encoding='utf8') as f:
 with open(操作查询路径, encoding='utf8') as f:
     操作查询词典 = json.load(f)
 
-方向表 = ['上移', '下移', '左移', '右移', '左上移', '左下移', '右上移', '右下移']
-
-设备 = MyMNTDevice(_device_id)
+pyminitouch_device = MyMNTDevice(device_id)
 device = torch.device("cuda:0" if (torch.cuda.is_available()) else "cpu")
 mod = torchvision.models.resnet101(pretrained=True).eval().cuda(device).requires_grad_(False)
 resnet101 = myResnet(mod)
 
-count_play_games = 0
-while True:
-    if AI打开 is False and circulation_stop is False:
-        continue
-    count_play_games += 1
-    图片路径 = training_data_save_directory + '/{}/'.format(str(int(time.time())))
-    os.mkdir(图片路径)
-    记录文件 = open(图片路径 + '_操作数据.json', 'w+')
-
-    图片张量 = torch.Tensor(0)
-    操作张量 = torch.Tensor(0)
-
-    伪词序列 = torch.from_numpy(np.ones((1, 60)).astype(np.int64)).cuda(device).unsqueeze(0)
-
-    指令延时 = 0
-
-    操作序列 = np.ones((1,))
-    操作序列[0] = 128
-    计数 = 0
-    time_start = time.time()
-    旧指令 = '移动停'
-    for i in range(100 * 1000):
-        if circulation_stop is True:
-            break
+图片路径 = training_data_save_directory + '/{}/'.format(str(int(time.time())))
+os.mkdir(图片路径)
+记录文件 = open(图片路径 + '_操作数据.json', 'w+')
+try:
+    while True:
         if AI打开 is False:
-            break
-        try:
-            imgA = 取图(windows_name)
-        except:
-            AI打开 = False
-            logger.info('取图失败！')
-            break
-        计时开始 = time.time()
-        if 图片张量.shape[0] == 0:
-            img = np.array(imgA)
-            img = torch.from_numpy(img).cuda(device).unsqueeze(0).permute(0, 3, 2, 1) / 255
-            _, out = resnet101(img)
-            图片张量 = out.reshape(1, 6 * 6 * 2048)
-        elif 图片张量.shape[0] < 300:
-            img = np.array(imgA)
-            img = torch.from_numpy(img).cuda(device).unsqueeze(0).permute(0, 3, 2, 1) / 255
-            _, out = resnet101(img)
-            图片张量 = torch.cat((图片张量, out.reshape(1, 6 * 6 * 2048)), 0)
-            # noinspection PyUnboundLocalVariable
-            操作序列 = np.append(操作序列, 动作)
-        else:
-            img = np.array(imgA)
-            img = torch.from_numpy(img).cuda(device).unsqueeze(0).permute(0, 3, 2, 1) / 255
-            _, out = resnet101(img)
-            图片张量 = 图片张量[1:300, :]
-            操作序列 = 操作序列[1:300]
-            操作序列 = np.append(操作序列, 动作)
-            图片张量 = torch.cat((图片张量, out.reshape(1, 6 * 6 * 2048)), 0)
+            continue
+        图片张量 = torch.Tensor(0)
+        操作张量 = torch.Tensor(0)
 
-        操作张量 = torch.from_numpy(操作序列.astype(np.int64)).cuda(device)
-        src_mask, trg_mask = create_masks(操作张量.unsqueeze(0), 操作张量.unsqueeze(0), device)
+        伪词序列 = torch.from_numpy(np.ones((1, 60)).astype(np.int64)).cuda(device).unsqueeze(0)
 
-        状态 = 状态信息综合(图片张量.cpu().numpy(), 操作序列, trg_mask)
+        指令延时 = 0
 
-        动作, 动作可能性, 评价 = 智能体.选择动作(状态, device, 1, False)
-        LI = 操作张量.contiguous().view(-1)
-        if 计数 % 50 == 0 and 计数 != 0:
-            设备.发送(操作查询词典['购买'])
-            设备.发送(操作查询词典['加一技能'])
-            设备.发送(操作查询词典['加二技能'])
-            设备.发送(操作查询词典['加三技能'])
-            设备.发送(操作查询词典['移动停'])
-            logger.info((旧指令, '周期'))
-            time.sleep(0.02)
-            设备.发送(操作查询词典[旧指令])
-        路径_a = 图片路径 + '{}.jpg'.format(str(i))
-        if 计数 % 1 == 0:
-            time_end = time.time()
-            指令 = 数_词表[str(动作)]
-            指令集 = 指令.split('_')
-            操作词典['图片号'] = str(i)
-            方向结果 = 处理方向()
-            if 方向结果 != '' or len(操作列) != 0 or 攻击态 == True:
-                if 方向结果 == '':
-                    操作词典['移动操作'] = 指令集[0]
-                else:
-                    操作词典['移动操作'] = 方向结果
-                if len(操作列) != 0:
-                    操作词典['动作操作'] = 操作列[0]
-                    lock.acquire()
-                    del 操作列[0]
-                    lock.release()
-                elif 攻击态 is True:
-                    操作词典['动作操作'] = '攻击'
-                else:
-                    操作词典['动作操作'] = '无动作'
-                imgA.save(路径_a)
-                if 自动 == 0:
-                    操作词典['结束'] = 1
-                else:
-                    操作词典['结束'] = 0
-                自动 = 1
-                json.dump(操作词典, 记录文件, ensure_ascii=False)
-                记录文件.write('\n')
-                新指令 = 操作词典['移动操作']
-                if 新指令 != 旧指令 and 新指令 != '无移动':
-                    旧指令 = 新指令
-                    try:
-                        logger.info(('手动模式', 旧指令))
-                        设备.发送(操作查询词典[旧指令])
-                    except:
-                        AI打开 = False
-                        logger.info('发送失败')
-                        break
-                    time.sleep(0.01)
-                if 操作词典['动作操作'] != '无动作' and 操作词典['动作操作'] != '发起集合' and 操作词典[
-                    '动作操作'] != '发起进攻' and 操作词典['动作操作'] != '发起撤退':
-                    logger.info(('手动', 指令集[1]))
-                    try:
-                        设备.发送(操作查询词典[操作词典['动作操作']])
-                    except:
-                        AI打开 = False
-                        logger.info('发送失败')
-                        break
+        操作序列 = np.ones((1,))
+        操作序列[0] = 128
+        计数 = 0
+        time_start = time.time()
+        旧指令 = '移动停'
+        for i in range(100 * 1000):
+            if AI打开 is False:
+                break
+            try:
+                imgA = 取图(scrcpy_windows_name)
+            except:
+                AI打开 = False
+                logger.info('取图失败！')
+                break
+            计时开始 = time.time()
+            if 图片张量.shape[0] == 0:
+                img = np.array(imgA)
+                img = torch.from_numpy(img).cuda(device).unsqueeze(0).permute(0, 3, 2, 1) / 255
+                _, out = resnet101(img)
+                图片张量 = out.reshape(1, 6 * 6 * 2048)
+            elif 图片张量.shape[0] < 300:
+                img = np.array(imgA)
+                img = torch.from_numpy(img).cuda(device).unsqueeze(0).permute(0, 3, 2, 1) / 255
+                _, out = resnet101(img)
+                图片张量 = torch.cat((图片张量, out.reshape(1, 6 * 6 * 2048)), 0)
+                # noinspection PyUnboundLocalVariable
+                操作序列 = np.append(操作序列, 动作)
             else:
-                操作列 = []
-                操作词典['移动操作'] = 指令集[0]
-                操作词典['动作操作'] = 指令集[1]
+                img = np.array(imgA)
+                img = torch.from_numpy(img).cuda(device).unsqueeze(0).permute(0, 3, 2, 1) / 255
+                _, out = resnet101(img)
+                图片张量 = 图片张量[1:300, :]
+                操作序列 = 操作序列[1:300]
+                操作序列 = np.append(操作序列, 动作)
+                图片张量 = torch.cat((图片张量, out.reshape(1, 6 * 6 * 2048)), 0)
 
-                新指令 = 指令集[0]
-                if 新指令 != 旧指令 and 新指令 != '无移动':
-                    旧指令 = 新指令
-                    try:
-                        logger.info(旧指令)
-                        设备.发送(操作查询词典[旧指令])
+            操作张量 = torch.from_numpy(操作序列.astype(np.int64)).cuda(device)
+            src_mask, trg_mask = create_masks(操作张量.unsqueeze(0), 操作张量.unsqueeze(0), device)
 
-                    except:
-                        AI打开 = False
-                        logger.info('发送失败')
-                        break
+            状态 = 状态信息综合(图片张量.cpu().numpy(), 操作序列, trg_mask)
 
-                    time.sleep(0.01)
-                imgA.save(路径_a)
-                自动 = 0
-                操作词典['结束'] = 0
-                json.dump(操作词典, 记录文件, ensure_ascii=False)
-                记录文件.write('\n')
+            动作, 动作可能性, 评价 = 智能体.选择动作(状态, device, 1, False)
+            LI = 操作张量.contiguous().view(-1)
+            if 计数 % 50 == 0 and 计数 != 0:
+                pyminitouch_device.发送(操作查询词典['购买'])
+                pyminitouch_device.发送(操作查询词典['加一技能'])
+                pyminitouch_device.发送(操作查询词典['加二技能'])
+                pyminitouch_device.发送(操作查询词典['加三技能'])
+                pyminitouch_device.发送(操作查询词典['移动停'])
+                logger.info((旧指令, '周期'))
+                time.sleep(0.02)
+                pyminitouch_device.发送(操作查询词典[旧指令])
+            路径_a = 图片路径 + '{}.jpg'.format(str(i))
+            if 计数 % 1 == 0:
+                time_end = time.time()
+                指令 = 数_词表[str(动作)]
+                指令集 = 指令.split('_')
+                操作词典['图片号'] = str(i)
+                方向结果 = 处理方向()
+                if 方向结果 != '' or len(操作列) != 0 or 攻击态 == True:
+                    if 方向结果 == '':
+                        操作词典['移动操作'] = 指令集[0]
+                    else:
+                        操作词典['移动操作'] = 方向结果
+                    if len(操作列) != 0:
+                        操作词典['动作操作'] = 操作列[0]
+                        lock.acquire()
+                        del 操作列[0]
+                        lock.release()
+                    elif 攻击态 is True:
+                        操作词典['动作操作'] = '攻击'
+                    else:
+                        操作词典['动作操作'] = '无动作'
+                    imgA.save(路径_a)
+                    if 自动 == 0:
+                        操作词典['结束'] = 1
+                    else:
+                        操作词典['结束'] = 0
+                    自动 = 1
+                    json.dump(操作词典, 记录文件, ensure_ascii=False)
+                    记录文件.write('\n')
+                    新指令 = 操作词典['移动操作']
+                    if 新指令 != 旧指令 and 新指令 != '无移动':
+                        旧指令 = 新指令
+                        try:
+                            logger.info(('手动模式', 旧指令))
+                            pyminitouch_device.发送(操作查询词典[旧指令])
+                        except:
+                            AI打开 = False
+                            logger.info('发送失败')
+                            break
+                        time.sleep(0.01)
+                    if 操作词典['动作操作'] != '无动作' and 操作词典['动作操作'] != '发起集合' and 操作词典[
+                        '动作操作'] != '发起进攻' and 操作词典['动作操作'] != '发起撤退':
+                        logger.info(('手动', 指令集[1]))
+                        try:
+                            pyminitouch_device.发送(操作查询词典[操作词典['动作操作']])
+                        except:
+                            AI打开 = False
+                            logger.info('发送失败')
+                            break
+                else:
+                    操作列 = []
+                    操作词典['移动操作'] = 指令集[0]
+                    操作词典['动作操作'] = 指令集[1]
 
-                新指令 = 操作词典['移动操作']
-                if 指令集[1] != '无动作' and 指令集[1] != '发起集合' and 指令集[1] != '发起进攻' and 指令集[
-                    1] != '发起撤退':
-                    logger.info(指令集[1])
-                    try:
-                        设备.发送(操作查询词典[指令集[1]])
-                    except:
-                        AI打开 = False
-                        logger.info('发送失败')
-                        break
-            用时1 = 0.22 - (time.time() - 计时开始)
-            if 用时1 > 0:
-                time.sleep(用时1)
-            用时 = time_end - time_start
-            计数 = 计数 + 1
-    if circulation_stop is True:
-        记录文件.close()
-        time.sleep(1)
-        logger.info('circulation_stop is True, break')
-        break
-    else:
+                    新指令 = 指令集[0]
+                    if 新指令 != 旧指令 and 新指令 != '无移动':
+                        旧指令 = 新指令
+                        try:
+                            logger.info(旧指令)
+                            pyminitouch_device.发送(操作查询词典[旧指令])
+
+                        except:
+                            AI打开 = False
+                            logger.info('发送失败')
+                            break
+
+                        time.sleep(0.01)
+                    imgA.save(路径_a)
+                    自动 = 0
+                    操作词典['结束'] = 0
+                    json.dump(操作词典, 记录文件, ensure_ascii=False)
+                    记录文件.write('\n')
+
+                    新指令 = 操作词典['移动操作']
+                    if 指令集[1] != '无动作' and 指令集[1] != '发起集合' and 指令集[1] != '发起进攻' and 指令集[
+                        1] != '发起撤退':
+                        logger.info(指令集[1])
+                        try:
+                            pyminitouch_device.发送(操作查询词典[指令集[1]])
+                        except:
+                            AI打开 = False
+                            logger.info('发送失败')
+                            break
+                用时1 = 0.22 - (time.time() - 计时开始)
+                if 用时1 > 0:
+                    time.sleep(用时1)
+                用时 = time_end - time_start
+                计数 = 计数 + 1
         记录文件.close()
         time.sleep(1)
         logger.info(('AI打开', AI打开))
+except KeyboardInterrupt:
+    pyminitouch_device.stop()
+    记录文件.close()
+    time.sleep(0.5)
+    logger.warning("用户中断了程序的运行")

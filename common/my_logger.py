@@ -10,7 +10,7 @@ class ColoredFormatter(logging.Formatter):
     # my_formatter = '%(asctime)s - %(name)s:%(funcName)s:%(lineno)d - %(levelname)-8s - %(message)s'
     asctime = Style.DIM + Fore.GREEN + '%(asctime)s'
     decollator = Style.NORMAL + Fore.RED + ' | '
-    code_line = Style.DIM + Fore.CYAN + '%(module)s:%(funcName)s:%(lineno)d'
+    code_line = Style.DIM + Fore.CYAN + '%(module)s.%(funcName)s:%(lineno)d'
     decollator_2 = Style.NORMAL + Fore.RED + ' - '
     levelname = Style.BRIGHT + Fore.BLUE + '%(levelname)-8s'
     FORMATS = {
