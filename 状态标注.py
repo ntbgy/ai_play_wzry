@@ -32,7 +32,7 @@ device = torch.device("cuda:0" if (torch.cuda.is_available()) else "cpu")
 mod = torchvision.models.resnet101(pretrained=True).eval().cuda(device).requires_grad_(False)
 resnet101 = myResnet(mod)
 model_判断状态 = Transformer(6, 768, 2, 12, 0.0, 6 * 6 * 2048)
-model_判断状态.load_state_dict(torch.load('weights/model_weights_判断状态L'))
+model_判断状态.load_state_dict(torch.load('E:/weights/model_weights_判断状态L'))
 model_判断状态.cuda(device)
 N = 15000  # 运行N次后学习
 条数 = 100
@@ -117,7 +117,6 @@ def on_release(key):
         一键按下 = False
     if key_name == '2':
         二键按下 = False
-
     if key_name == '3':
         三键按下 = False
     if key_name == '4':
@@ -140,12 +139,10 @@ def on_release(key):
 
 def on_press(key):
     global 一键按下, 状况, 继续
-
     key_name = get_key_name(key)
     操作 = ''
     if key_name == 'Key.left':
         状况 = '击杀小兵或野怪或推掉塔'
-
     if key_name == 'Key.down':
         状况 = '击杀敌方英雄'
     if key_name == 'Key.right':
@@ -160,10 +157,10 @@ def on_press(key):
         状况 = '死亡'
     if key_name == 'i':
         继续 = bool(1 - 继续)
-
     print(状况)
 
 
+# noinspection PyTypeChecker
 def start_listen():
     with Listener(on_press=on_press, on_release=on_release) as listener:
         listener.join()
@@ -335,24 +332,3 @@ for i in range(6666666):
 
     time.sleep(1)
     print('继续', 继续)
-
-#     状态=状态_
-#     延迟 = 0.22 - (time.time() - 计时开始)
-#     if 延迟 > 0:
-#         time.sleep(延迟)
-#     局内计数 = 局内计数 + 1
-#
-# 分数记录.append(分数)
-#
-# 平均分 = np.mean(分数记录[-500:])
-# 平均速度 = np.mean(速度记录[-15000:])
-# if 平均分 > 最高分:
-#     最高分 = 平均分
-#
-# print('步数', 步数, '平均分', 平均分,'最高分',最高分,'局数',i,'平均速度',平均速度)
-
-
-# time.sleep(2)
-# while True:
-#
-#     time.sleep(11)

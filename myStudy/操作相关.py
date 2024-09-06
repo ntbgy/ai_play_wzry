@@ -3,7 +3,8 @@ import time
 
 from 运行辅助 import MyMNTDevice
 
-device = MyMNTDevice('emulator-5554')
+# device = MyMNTDevice('emulator-5554')
+device = MyMNTDevice('2b59a9ea')
 
 
 def 操作测试1():
@@ -58,9 +59,9 @@ def 操作测试2():
     for _ in range(1):
         for key, value in data.items():
             print(key)
-            time.sleep(1)
-            device.发送(value)
             time.sleep(2)
+            device.发送(value)
+            time.sleep(3)
     device.stop()
 
 

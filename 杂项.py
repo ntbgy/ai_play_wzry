@@ -40,11 +40,6 @@ def 打印测试数据(数_词表, 数据, 输人_分, 标签):
         print(打印)
         return False
 
-    print("输出：", 打印)
-
-    # for i in range(16):
-    #     print(数_词表[str(临[i, 0])])
-
 
 def 打印测试数据_A(数_词表, 数据, 输人_分):
     if 数据.shape[0] != 0:

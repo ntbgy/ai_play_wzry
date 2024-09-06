@@ -14,10 +14,11 @@ from 模型_策略梯度 import 智能体
 状态列表 = []
 for K in 状态辞典B:
     状态列表.append(K)
-训练数据保存目录 = '训练数据样本/未用'
+训练数据保存目录 = 'E:/训练数据样本/未用'
 if not os.path.exists(训练数据保存目录):
     os.makedirs(训练数据保存目录)
-for root, dirs, files in os.walk('训练数据样本/未用'):
+dirs = list()
+for root, dirs, files in os.walk('E:/训练数据样本/未用'):
     if len(dirs) > 0:
         break
 
@@ -33,7 +34,7 @@ config = TransformerConfig()
 模型路径 = 'model_weights_2021-05-7D'
 
 model_判断状态 = Transformer(6, 768, 2, 12, 0.0, 6 * 6 * 2048)
-model_判断状态.load_state_dict(torch.load('weights/model_weights_判断状态L'))
+model_判断状态.load_state_dict(torch.load('E:/weights/model_weights_判断状态L'))
 model_判断状态.cuda(device).requires_grad_(False)
 N = 15000  # 运行N次后学习
 条数 = 100
@@ -50,7 +51,6 @@ N = 15000  # 运行N次后学习
 计数 = 0
 time_start = time.time()
 for j in range(100):
-    # random.shuffle(dirs)
     for 号 in dirs:
         预处理数据 = '训练数据样本/未用/' + 号 + '/图片_操作预处理数据2.npz'
         if os.path.isfile(预处理数据):
@@ -135,22 +135,16 @@ for j in range(100):
                 # loss = F.cross_entropy(lin, 目标输出_分_torch.contiguous().view(-1), ignore_index=-1)
                 if 计数 % 1 == 0:
                     # print(loss)
-
                     time_end = time.time()
                     用时 = time_end - time_start
-
                     # _, 抽样 = torch.topk(输出_实际_A, k=1, dim=-1)
                     # 抽样np = 抽样.cpu().numpy()
                     # 打印抽样数据(数_词表, 抽样np[0:1,:,:], 目标输出_分_torch[0,:])
-                    print("用时{} 第{}轮 第{}张 号{}".format(用时, j, 计数, 号))
+                    # print("用时{} 第{}轮 第{}张 号{}".format(用时, j, 计数, 号))
                 if 计数 % 45060 == 0:
                     print('888')
-
                 # loss.backward()
-
                 # optimizer.step()
                 计数 = 计数 + 1
                 i = i + 1
     智能体.保存模型(j)
-    # torch.save(model.state_dict(), 'weights/model_weights_2021-05-7D')
-    # torch.save(model.state_dict(), 'weights/model_weights_2021-05-7D{}'.format(str(j)))

@@ -81,7 +81,7 @@ def get_model(opt, trg_vocab, model_weights='model_weights'):
 
     if opt.load_weights is not None and os.path.isfile(opt.load_weights + '/' + model_weights):
         print("loading pretrained weights...")
-        model.load_state_dict(torch.load(f'{opt.load_weights}/' + model_weights))
+        model.load_state_dict(torch.load(f'{opt.load_weights}/{model_weights}'))
     else:
         量 = 0
         for p in model.parameters():
@@ -249,16 +249,13 @@ class 智能体:
         self.熵系数 = 熵系数
         self.泛化优势估计参数L = 泛化优势估计参数L
         device = torch.device("cuda:0" if (torch.cuda.is_available()) else "cpu")
-        模型名称 = '模型_策略梯度_丙TA'
-
+        from common.env import 模型名称
         config = TransformerConfig()
+        print(f"模型名称: {模型名称}")
         model = get_model(config, 130, 模型名称)
-
         model = model.cuda(device)
         self.动作 = model
-        # torch.save(self.动作.state_dict(), 'weights/模型_动作ppo阶段停bZ1')
         self.优化函数 = torch.optim.Adam(self.动作.parameters(), lr=2e-5, betas=(0.9, 0.95), eps=1e-9)
-
         self.数据集 = PPO_数据集(并行条目数)
         self.文件名集 = []
 
@@ -273,13 +270,9 @@ class 智能体:
         self.数据集.读硬盘(文件名)
 
     def 保存模型(self, 轮号):
-        print('... 保存模型 ...')
-
-        torch.save(self.动作.state_dict(), 'weights/模型_策略梯度_丙N')
-        torch.save(self.动作.state_dict(), 'weights/模型_策略梯度_丙N{}'.format(轮号))
-        # torch.save(self.评论.state_dict(), 'weights/模型_评论')
-
-        # torch.save(self.评论.state_dict(), 'weights/模型_评论2')
+        print(f'... 保存模型 {轮号}...')
+        torch.save(self.动作.state_dict(), 'E:/weights/model_weights_1v1.pth')
+        torch.save(self.动作.state_dict(), f'E:/weights/temp/model_weights_1v1_{轮号}.pth')
 
     def 载入模型(self):
         print('... 载入模型 ...')
@@ -287,7 +280,6 @@ class 智能体:
         # self.评价.载入权重()
 
     def 选择动作(self, 状态, device, 传入动作, 手动=False):
-
         # 分布,q_ = self.动作(状态)
         # r_, 价值 = self.评论(状态)
         self.动作.requires_grad_(False)
@@ -302,17 +294,12 @@ class 智能体:
         if 手动:
             动作 = 传入动作
         else:
-
             动作 = 分布.sample()
-
         动作概率 = T.squeeze(分布.log_prob(动作)).item()
-
         动作 = T.squeeze(动作).item()
-
         return 动作, 动作概率, 价值
 
     def 选择动作批量(self, 状态, device, 目标输出_分_torch, 手动=False):
-
         # 分布,q_ = self.动作(状态)
         # r_, 价值 = self.评论(状态)
         self.动作.requires_grad_(False)
@@ -327,21 +314,12 @@ class 智能体:
         else:
 
             动作 = 分布.sample()
-
         动作概率 = T.squeeze(分布.log_prob(动作))
-
         动作 = T.squeeze(动作)
-
         return 动作, 动作概率, 价值
 
     def 学习(self, device):
         for i in range(1):
-
-            # for k, v in self.动作.named_parameters():
-            #
-            #     if k == '评价.weight' or k=='评价.bias':
-            #         v.requires_grad = True
-
             for _ in range(self.轮数):
                 动作集, 旧_动作概率集, 评价集, 回报集, 完结集, 图片集合, 动作数组, 条目集 = self.数据集.提取数据()
                 print('回报集', 回报集[0:10])
@@ -357,7 +335,7 @@ class 智能体:
                     for k in range(t, len(回报集) - 1):
 
                         优势值 += pow(折扣率, abs(0 - 计数)) * (
-                                    回报集[k] + self.优势估计参数G * 价值[k + 1] * (1 - int(完结集[k])) - 价值[k])
+                                回报集[k] + self.优势估计参数G * 价值[k + 1] * (1 - int(完结集[k])) - 价值[k])
                         计数 = 计数 + 1
                         if (1 - int(完结集[k])) == 0 or 计数 > 100:
                             break

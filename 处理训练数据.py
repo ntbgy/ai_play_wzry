@@ -8,7 +8,7 @@ from PIL import Image
 import json
 from resnet_utils import myResnet
 
-操作记录 = '训练数据样本/未用'
+操作记录 = 'E:/训练数据样本/未用'
 if not os.path.exists(操作记录):
     os.makedirs(操作记录)
 
@@ -19,11 +19,11 @@ resnet101 = myResnet(resnet101).cuda(device).requires_grad_(False)
 
 with open(词数词典路径, encoding='utf8') as f:
     词数词典 = json.load(f)
-
-for root, dirs, files in os.walk(操作记录):
-    if len(dirs) > 0:
+dirnames = list()
+for dirpath, dirnames, filenames in os.walk(操作记录):
+    if len(dirnames) > 0:
         break
-for 号 in dirs:
+for 号 in dirnames:
     路径json = 操作记录 + '/' + 号 + '/_操作数据.json'
     numpy数组路径 = 操作记录 + '/' + 号 + '/图片_操作预处理数据2.npz'
     if os.path.isfile(numpy数组路径):
@@ -49,13 +49,12 @@ for 号 in dirs:
 
             if df == "":
                 break
-            df = json.loads(df)
+            try:
+                df = json.loads(df)
+            except json.decoder.JSONDecodeError as e:
+                print(df)
+                break
             数据列.append(df)
-    # for i in range(len(数据列)):
-    #     if i>0 and 数据列[i]['动作操作']!='无动作' and 数据列[i-1]['动作操作']=='无动作' :
-    #         数据列[i-1]['动作操作']=数据列[i]['动作操作']
-    #         if i>1 and  数据列[i-2]['动作操作']=='无动作' :
-    #             数据列[i - 2]['动作操作'] = 数据列[i]['动作操作']
 
     with open(路径json, encoding='ansi') as f:
         移动操作 = '无移动'

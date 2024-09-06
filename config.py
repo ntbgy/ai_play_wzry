@@ -27,7 +27,7 @@ class TransformerConfig(object):
             n_layers=12,
             heads=12,
             dropout=0.0,
-            load_weights='weights'
+            load_weights='E:/weights'
     ):
         self.d_model = d_model
         self.n_layers = n_layers

@@ -1,3 +1,5 @@
+@echo off
+
 taskkill /IM scrcpy.exe /F
 taskkill /IM adb.exe /F
 

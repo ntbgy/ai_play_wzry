@@ -1,17 +1,15 @@
 import logging
-import os
 import threading
-import time
 
 import torchvision
 from airtest.cli.parser import cli_setup
-from airtest.core.api import auto_setup
+from airtest.core.api import *
+from airtest.report.report import simple_report
 from pynput import keyboard
 from pynput.keyboard import Key, Listener
 
 from Batch import create_masks
-from auto.王者荣耀.王者荣耀 import 退出王者荣耀
-from common.airtestProjectsCommon import get_now_img_txt, clean_log
+from common.airtestProjectsCommon import get_now_img_txt, clean_log, ocr_now_touch
 from resnet_utils import myResnet
 from 取训练数据 import *
 from 杂项 import *
@@ -39,7 +37,7 @@ dir_path = os.path.dirname(os.path.abspath(__file__))
 _device_id = 'emulator-5554'
 windows_name = "LIO-AN00"
 
-训练数据保存目录 = '训练数据样本/未用'
+训练数据保存目录 = 'E:/训练数据样本/未用'
 if not os.path.exists(训练数据保存目录):
     os.makedirs(训练数据保存目录)
 lock = threading.Lock()
@@ -68,7 +66,7 @@ Q键按下 = False
 AI打开 = True
 操作列 = []
 自动 = 0
-
+circulation_stop = False
 N = 15000  # 运行N次后学习
 条数 = 100
 轮数 = 3
@@ -81,17 +79,69 @@ N = 15000  # 运行N次后学习
     输入维度=6
 )
 
+
+def 返回大厅并重新开始1v1(txt=None):
+    if txt is None:
+        txt = get_now_img_txt()
+    if '返回大厅' in txt:
+        ocr_now_touch('返回大厅')
+        sleep(5)
+    if '开始练习' in txt:
+        ocr_now_touch('1v1模式')
+        sleep(1)
+        ocr_now_touch('难度1')
+        sleep(1)
+        ocr_now_touch('开始练习')
+        sleep(2)
+    touch(Template(filename='auto/王者荣耀/对战/屏幕截图 2024-09-06 083209.png'))
+    sleep(1)
+    ocr_now_touch('射手')
+    sleep(1)
+    touch(Template(filename='auto/王者荣耀/对战/屏幕截图 2024-09-06 083341.png'))
+    sleep(1)
+    ocr_now_touch('挑选对手')
+    sleep(1)
+    touch(Template(filename='auto/王者荣耀/对战/屏幕截图 2024-09-06 083209.png'))
+    sleep(1)
+    ocr_now_touch('射手')
+    sleep(1)
+    touch(Template(filename='auto/王者荣耀/对战/屏幕截图 2024-09-06 083529.png'))
+    sleep(1)
+    ocr_now_touch('开始对战')
+    sleep(3)
+
+    return True
+
+
+txt = get_now_img_txt(dir_path)
+if '返回大厅' in txt or '开始练习' in txt:
+    try:
+        返回大厅并重新开始1v1(txt)
+    except TargetNotFoundError as e:
+        # 生成报告
+        simple_report(__file__, logpath=True, output=f"{dir_path}\\log\\log.html")
+        # 打开报告
+        os.startfile(f"{dir_path}\\log\\log.html")
+        raise TargetNotFoundError(e)
+
+
 def get_key_name(key):
     if isinstance(key, keyboard.KeyCode):
         return key.char
     else:
         return str(key)
 
+
 # 监听按压
 def on_press(key):
-    global fun_start, time_interval, index, 数据字典, count, count_dict, W键按下, S键按下, A键按下, D键按下, 手动模式, 操作列, AI打开, 攻击放开, Q键按下, 攻击态
-    key_name = get_key_name(key)
-    操作 = ''
+    global circulation_stop, fun_start, time_interval, index, \
+        数据字典, count, count_dict, W键按下, \
+        S键按下, A键按下, D键按下, 手动模式, \
+        操作列, AI打开, 攻击放开, Q键按下, 攻击态
+    key_name = get_key_name(key).lower()
+    manual_manipulation = ''
+    if key_name == '0':
+        circulation_stop = True
     if key_name == 'w':
         W键按下 = True
     elif key_name == 'a':
@@ -105,35 +155,36 @@ def on_press(key):
     elif key_name == 'i':
         AI打开 = bool(1 - AI打开)
     elif key_name == 'Key.space':
-        操作 = '召唤师技能'
+        manual_manipulation = '召唤师技能'
     elif key_name == 'Key.end':
-        操作 = '补刀'
+        manual_manipulation = '补刀'
     elif key_name == 'Key.page_down':
-        操作 = '推塔'
+        manual_manipulation = '推塔'
     elif key_name == 'j':
-        操作 = '一技能'
+        manual_manipulation = '一技能'
     elif key_name == 'k':
-        操作 = '二技能'
+        manual_manipulation = '二技能'
     elif key_name == 'l':
-        操作 = '三技能'
+        manual_manipulation = '三技能'
     elif key_name == 'f':
-        操作 = '回城'
+        manual_manipulation = '回城'
     elif key_name == 'g':
-        操作 = '恢复'
+        manual_manipulation = '恢复'
     elif key_name == 'h':
-        操作 = '召唤师技能'
+        manual_manipulation = '召唤师技能'
     elif key_name == 'Key.left':
-        操作 = '一技能'
+        manual_manipulation = '一技能'
     elif key_name == 'Key.down':
-        操作 = '二技能'
+        manual_manipulation = '二技能'
     elif key_name == 'Key.right':
-        操作 = '三技能'
+        manual_manipulation = '三技能'
     elif key_name == 'Key.up':
         攻击态 = True
     lock.acquire()
-    if 操作 != '':
-        操作列.append(操作)
+    if manual_manipulation != '':
+        操作列.append(manual_manipulation)
     lock.release()
+
 
 # 监听释放
 def on_release(key):
@@ -157,11 +208,13 @@ def on_release(key):
         print('停止监听')
         return False
 
+
 # 开始监听
 def start_listen():
     # noinspection PyTypeChecker
     with Listener(on_press=on_press, on_release=on_release) as listener:
         listener.join()
+
 
 def 处理方向():
     if Q键按下 is True:
@@ -185,6 +238,7 @@ def 处理方向():
     else:
         return ''
 
+
 词数词典路径 = "./json/词_数表.json"
 数_词表路径 = "./json/数_词表.json"
 操作查询路径 = "./json/名称_操作.json"
@@ -207,9 +261,10 @@ with open(操作查询路径, encoding='utf8') as f:
 device = torch.device("cuda:0" if (torch.cuda.is_available()) else "cpu")
 mod = torchvision.models.resnet101(pretrained=True).eval().cuda(device).requires_grad_(False)
 resnet101 = myResnet(mod)
-circulation_stop = False
-while True:
 
+count_play_games = 0
+while True:
+    count_play_games += 1
     if not AI打开:
         continue
 
@@ -231,6 +286,8 @@ while True:
     time_start = time.time()
     旧指令 = '移动停'
     for i in range(100 * 1000):
+        if circulation_stop is True:
+            break
         if not AI打开:
             break
         try:
@@ -374,11 +431,17 @@ while True:
                 time.sleep(用时1)
             用时 = time_end - time_start
             计数 = 计数 + 1
-            if i % 500 == 0:
-                txt = get_now_img_txt(dir_path)
-                if '继续' in txt:
-                    circulation_stop = True
-                    break
+        # if i % 300 == 0:
+        #     txt = get_now_img_txt(dir_path)
+        #     if '返回大厅' in txt:
+        #         记录文件.close()
+        #         设备.stop()
+        #         返回大厅并重新开始1v1(txt)
+        #         设备.start()
+        #         sleep(1)
+        #         break
+    if count_play_games == 1:
+        circulation_stop = True
     if circulation_stop is True:
         记录文件.close()
         设备.stop()
