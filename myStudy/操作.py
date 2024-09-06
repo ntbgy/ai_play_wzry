@@ -1,6 +1,7 @@
 import json
 
 from 运行辅助 import MyMNTDevice
+
 _DEVICE_ID = 'emulator-5554'
 设备 = MyMNTDevice(_DEVICE_ID)
 with open('json/名称_操作.json', 'r', encoding='utf-8') as f:

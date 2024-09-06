@@ -17,7 +17,7 @@ import json
 
 
 def cv2ImgAddText(img, text, left, top, textColor=(0, 255, 0), textSize=20):
-    if (isinstance(img, np.ndarray)):  # 判断是否OpenCV图片类型
+    if isinstance(img, np.ndarray):  # 判断是否OpenCV图片类型
         img = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
     # 创建一个可以在给定图像上绘图的对象
     draw = ImageDraw.Draw(img)
@@ -93,6 +93,7 @@ def on_release(key):
 
 
 # 开始监听
+# noinspection PyTypeChecker
 def start_listen():
     with Listener(on_press=on_press, on_release=on_release) as listener:
         listener.join()

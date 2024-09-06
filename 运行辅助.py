@@ -48,6 +48,7 @@ def 取图(窗口名称):
     win32gui.ReleaseDC(hWnd, hWndDC)
     return im2
 
+
 if __name__ == '__main__':
     im2 = 取图('23116PN5BC')
     im2.save(r"C:\Users\ntbgy\Desktop\log.jpg")

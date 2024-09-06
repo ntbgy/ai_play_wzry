@@ -8,9 +8,8 @@ from airtest.cli.parser import cli_setup
 from airtest.core.api import *
 from airtest.report.report import simple_report
 
-from common.airtestProjectsCommon import clean_log
-from auto.王者荣耀.每日领垃圾.领垃圾 import 领垃圾
 from auto.王者荣耀.进入游戏主页.进入游戏主页 import 进入游戏主页
+from common.airtestProjectsCommon import clean_log
 
 
 def 退出王者荣耀():

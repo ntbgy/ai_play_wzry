@@ -10,6 +10,7 @@ from pynput.keyboard import Key, Listener
 
 from Batch import create_masks
 from common.airtestProjectsCommon import get_now_img_txt, clean_log, ocr_now_touch
+from common.my_logger import logger
 from resnet_utils import myResnet
 from 取训练数据 import *
 from 杂项 import *
@@ -20,8 +21,8 @@ from 运行辅助 import *
 # 设置日志级别
 logger_airtest = logging.getLogger("airtest")
 logger_ppocr = logging.getLogger("ppocr")
-logger_airtest.setLevel(logging.ERROR)
-logger_ppocr.setLevel(logging.ERROR)
+logger_airtest.setLevel(logging.CRITICAL)
+logger_ppocr.setLevel(logging.CRITICAL)
 # 清空存量日志
 clean_log()
 # 连接设备
@@ -36,25 +37,17 @@ dir_path = os.path.dirname(os.path.abspath(__file__))
 # 雷电模拟器
 _device_id = 'emulator-5554'
 windows_name = "LIO-AN00"
-
-训练数据保存目录 = 'E:/训练数据样本/未用'
-if not os.path.exists(训练数据保存目录):
-    os.makedirs(训练数据保存目录)
+training_data_save_directory = 'E:/训练数据样本/未用'
+if not os.path.exists(training_data_save_directory):
+    os.makedirs(training_data_save_directory)
 lock = threading.Lock()
 start = time.time()
-end = time.time()
 fun_start = 0
 time_interval = 0
-index = 0
 数据字典 = {'interval_times': 0, 'max_interval': 0., 'interval_location': []}
+index = 0
 count = 0
 count_dict = {'first_time': 0., 'first_p_to_second_r': 0.}
-keyBoard_dict = {
-    'Key.enter': '\n',
-    'Key.space': ' ',
-    "Key.tab": '\t'
-}
-
 W键按下 = False
 S键按下 = False
 A键按下 = False
@@ -67,15 +60,11 @@ AI打开 = True
 操作列 = []
 自动 = 0
 circulation_stop = False
-N = 15000  # 运行N次后学习
-条数 = 100
-轮数 = 3
-学习率 = 0.0003
 智能体 = 智能体(
     动作数=7,
-    并行条目数=条数,
-    学习率=学习率,
-    轮数=轮数,
+    并行条目数=100,
+    学习率=0.0003,
+    轮数=3,
     输入维度=6
 )
 
@@ -202,10 +191,10 @@ def on_release(key):
         Q键按下 = False
     elif key_name == 'Key.up':
         攻击态 = False
-    print("已经释放:", key_name)
+    logger.info(("已经释放:", key_name))
     if key == Key.esc:
         # 停止监听
-        print('停止监听')
+        logger.info('停止监听')
         return False
 
 
@@ -264,13 +253,11 @@ resnet101 = myResnet(mod)
 
 count_play_games = 0
 while True:
-    count_play_games += 1
-    if not AI打开:
+    if AI打开 is False and circulation_stop is False:
         continue
-
-    图片路径 = 训练数据保存目录 + '/{}/'.format(str(int(time.time())))
+    count_play_games += 1
+    图片路径 = training_data_save_directory + '/{}/'.format(str(int(time.time())))
     os.mkdir(图片路径)
-
     记录文件 = open(图片路径 + '_操作数据.json', 'w+')
 
     图片张量 = torch.Tensor(0)
@@ -288,37 +275,29 @@ while True:
     for i in range(100 * 1000):
         if circulation_stop is True:
             break
-        if not AI打开:
+        if AI打开 is False:
             break
         try:
             imgA = 取图(windows_name)
         except:
             AI打开 = False
-            print('取图失败！')
+            logger.info('取图失败！')
             break
         计时开始 = time.time()
         if 图片张量.shape[0] == 0:
-
             img = np.array(imgA)
-
             img = torch.from_numpy(img).cuda(device).unsqueeze(0).permute(0, 3, 2, 1) / 255
             _, out = resnet101(img)
             图片张量 = out.reshape(1, 6 * 6 * 2048)
-
         elif 图片张量.shape[0] < 300:
-
             img = np.array(imgA)
-
             img = torch.from_numpy(img).cuda(device).unsqueeze(0).permute(0, 3, 2, 1) / 255
             _, out = resnet101(img)
             图片张量 = torch.cat((图片张量, out.reshape(1, 6 * 6 * 2048)), 0)
             # noinspection PyUnboundLocalVariable
             操作序列 = np.append(操作序列, 动作)
-
         else:
-
             img = np.array(imgA)
-
             img = torch.from_numpy(img).cuda(device).unsqueeze(0).permute(0, 3, 2, 1) / 255
             _, out = resnet101(img)
             图片张量 = 图片张量[1:300, :]
@@ -339,7 +318,7 @@ while True:
             设备.发送(操作查询词典['加二技能'])
             设备.发送(操作查询词典['加三技能'])
             设备.发送(操作查询词典['移动停'])
-            print(旧指令, '周期')
+            logger.info((旧指令, '周期'))
             time.sleep(0.02)
             设备.发送(操作查询词典[旧指令])
         if 计数 % 1 == 0:
@@ -375,21 +354,21 @@ while True:
                 if 新指令 != 旧指令 and 新指令 != '无移动':
                     旧指令 = 新指令
                     try:
-                        print('手动模式', 旧指令)
+                        logger.info(('手动模式', 旧指令))
                         设备.发送(操作查询词典[旧指令])
                     except:
                         AI打开 = False
-                        print('发送失败')
+                        logger.info('发送失败')
                         break
                     time.sleep(0.01)
                 if 操作词典['动作操作'] != '无动作' and 操作词典['动作操作'] != '发起集合' and 操作词典[
                     '动作操作'] != '发起进攻' and 操作词典['动作操作'] != '发起撤退':
-                    print('手动', 指令集[1])
+                    logger.info(('手动', 指令集[1]))
                     try:
                         设备.发送(操作查询词典[操作词典['动作操作']])
                     except:
                         AI打开 = False
-                        print('发送失败')
+                        logger.info('发送失败')
                         break
             else:
                 操作列 = []
@@ -400,12 +379,12 @@ while True:
                 if 新指令 != 旧指令 and 新指令 != '无移动':
                     旧指令 = 新指令
                     try:
-                        print(旧指令)
+                        logger.info(旧指令)
                         设备.发送(操作查询词典[旧指令])
 
                     except:
                         AI打开 = False
-                        print('发送失败')
+                        logger.info('发送失败')
                         break
 
                     time.sleep(0.01)
@@ -419,35 +398,24 @@ while True:
                 新指令 = 操作词典['移动操作']
                 if 指令集[1] != '无动作' and 指令集[1] != '发起集合' and 指令集[1] != '发起进攻' and 指令集[
                     1] != '发起撤退':
-                    print(指令集[1])
+                    logger.info(指令集[1])
                     try:
                         设备.发送(操作查询词典[指令集[1]])
                     except:
                         AI打开 = False
-                        print('发送失败')
+                        logger.info('发送失败')
                         break
             用时1 = 0.22 - (time.time() - 计时开始)
             if 用时1 > 0:
                 time.sleep(用时1)
             用时 = time_end - time_start
             计数 = 计数 + 1
-        # if i % 300 == 0:
-        #     txt = get_now_img_txt(dir_path)
-        #     if '返回大厅' in txt:
-        #         记录文件.close()
-        #         设备.stop()
-        #         返回大厅并重新开始1v1(txt)
-        #         设备.start()
-        #         sleep(1)
-        #         break
-    if count_play_games == 1:
-        circulation_stop = True
     if circulation_stop is True:
         记录文件.close()
-        设备.stop()
-        # 退出王者荣耀()
+        time.sleep(1)
+        logger.info('circulation_stop is True, break')
         break
     else:
         记录文件.close()
         time.sleep(1)
-        print('AI打开', AI打开)
+        logger.info(('AI打开', AI打开))

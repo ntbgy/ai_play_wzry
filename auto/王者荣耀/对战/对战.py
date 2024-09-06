@@ -1,11 +1,9 @@
 import logging
-import sys
 
 from airtest.cli.parser import cli_setup
-from airtest.core.api import *
-from airtest.report.report import simple_report
 
 from common.airtestProjectsCommon import *
+
 
 def 进入对战():
     ocr_now_touch('对战')
@@ -27,10 +25,14 @@ def 进入对战():
             sleep(1)
         else:
             sleep(5)
-        if i==9:
+        if i == 9:
             raise ValueError("进不去了")
+
+
 def 结束对战回到首页():
     pass
+
+
 def 离线1v1():
     # 需要先手工登录一个账号，退出了不行~
     txt = get_now_img_txt()

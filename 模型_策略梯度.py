@@ -271,17 +271,17 @@ class 智能体:
 
     def 保存模型(self, 轮号):
         print(f'... 保存模型 {轮号}...')
-        torch.save(self.动作.state_dict(), 'E:/weights/model_weights_1v1.pth')
-        torch.save(self.动作.state_dict(), f'E:/weights/temp/model_weights_1v1_{轮号}.pth')
+        from common.env import 保存模型名称
+        torch.save(self.动作.state_dict(), f'E:/weights/{保存模型名称}')
+        if not os.path.isdir(f'E:/weights/temp'):
+            os.makedirs(f'E:/weights/temp')
+        torch.save(self.动作.state_dict(), f'E:/weights/temp/{保存模型名称.replace(".pth", "")}.pth')
 
     def 载入模型(self):
         print('... 载入模型 ...')
         self.动作.载入权重()
-        # self.评价.载入权重()
 
     def 选择动作(self, 状态, device, 传入动作, 手动=False):
-        # 分布,q_ = self.动作(状态)
-        # r_, 价值 = self.评论(状态)
         self.动作.requires_grad_(False)
         操作序列 = torch.from_numpy(状态['操作序列'].astype(np.int64)).cuda(device)
         图片张量 = torch.from_numpy(状态['图片张量']).cuda(device)
@@ -312,7 +312,6 @@ class 智能体:
         if 手动:
             动作 = 目标输出_分_torch
         else:
-
             动作 = 分布.sample()
         动作概率 = T.squeeze(分布.log_prob(动作))
         动作 = T.squeeze(动作)
@@ -320,6 +319,7 @@ class 智能体:
 
     def 学习(self, device):
         for i in range(1):
+            总损失 = None
             for _ in range(self.轮数):
                 动作集, 旧_动作概率集, 评价集, 回报集, 完结集, 图片集合, 动作数组, 条目集 = self.数据集.提取数据()
                 print('回报集', 回报集[0:10])

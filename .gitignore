@@ -1,6 +1,9 @@
 .idea/
 weights/
 log/
+log.html
+temp.py
+
 训练数据样本/
 # Byte-compiled / optimized / DLL files
 __pycache__/

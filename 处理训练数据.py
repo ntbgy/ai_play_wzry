@@ -26,12 +26,12 @@ for dirpath, dirnames, filenames in os.walk(操作记录):
 for 号 in dirnames:
     路径json = 操作记录 + '/' + 号 + '/_操作数据.json'
     numpy数组路径 = 操作记录 + '/' + 号 + '/图片_操作预处理数据2.npz'
+    # 如果已经处理过了就不用重复处理了
     if os.path.isfile(numpy数组路径):
         continue
 
     图片张量 = torch.Tensor(0)
 
-    # print(图片张量.shape[0])
     操作张量 = torch.Tensor(0)
 
     伪词序列 = torch.from_numpy(np.ones((1, 60)).astype(np.int64)).cuda(device).unsqueeze(0)

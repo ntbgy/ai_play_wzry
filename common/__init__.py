@@ -18,6 +18,7 @@ def get_files_path(dir_path):
             paths.append(Path(root) / Path(file))
     return paths
 
+
 def get_txt(pic: any):
     ocr = PaddleOCR(use_angle_cls=True, lang='ch')  # 可以根据需要选择语言
 
