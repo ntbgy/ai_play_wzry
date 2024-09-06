@@ -1,17 +1,23 @@
 # from torchtext import data
 import numpy as np
 import torch
-from torch.autograd import Variable
 
 
+# from torch.autograd import Variable
+# def nopeak_mask_old(size, device):
+#     np_mask = np.triu(np.ones((1, size, size)),
+#                       k=1).astype('uint8')
+#     variable = Variable
+#     np_mask = variable(torch.from_numpy(np_mask) == 0)
+#     np_mask = np_mask.cuda(device)
+#     return np_mask
+
+# 在较新的 PyTorch 版本中，torch.Tensor和torch.Variable已经合并，并且cuda()方法不能直接用于numpy数组。
 def nopeak_mask(size, device):
-    np_mask = np.triu(np.ones((1, size, size)),
-                      k=1).astype('uint8')
-    variable = Variable
-    np_mask = variable(torch.from_numpy(np_mask) == 0)
-    np_mask = np_mask.cuda(device)
-    return np_mask
-
+    np_mask = np.triu(np.ones((1, size, size)), k=1).astype('bool')
+    torch_mask = torch.from_numpy(np_mask)
+    torch_mask = torch_mask.to(device)
+    return torch_mask
 
 def create_masks(src, trg, device):
     src_mask = (src != -1).unsqueeze(-2)
@@ -52,7 +58,7 @@ global max_src_in_batch, max_tgt_in_batch
 
 
 def batch_size_fn(new, count, sofar):
-    "Keep augmenting batch and calculate total number of tokens + padding."
+    """Keep augmenting batch and calculate total number of tokens + padding."""
     global max_src_in_batch, max_tgt_in_batch
     if count == 1:
         max_src_in_batch = 0

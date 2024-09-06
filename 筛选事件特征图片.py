@@ -9,8 +9,6 @@ from PIL import Image, ImageDraw, ImageFont
 from pynput import keyboard
 from pynput.keyboard import Key, Listener
 
-# device = torch.device("cuda:0" if (torch.cuda.is_available()) else "cpu")
-# print(device)
 import json
 
 态 = '暂停'

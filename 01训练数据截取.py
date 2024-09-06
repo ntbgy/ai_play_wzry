@@ -321,6 +321,7 @@ while True:
             logger.info((旧指令, '周期'))
             time.sleep(0.02)
             设备.发送(操作查询词典[旧指令])
+        路径_a = 图片路径 + '{}.jpg'.format(str(i))
         if 计数 % 1 == 0:
             time_end = time.time()
             指令 = 数_词表[str(动作)]
@@ -341,7 +342,6 @@ while True:
                     操作词典['动作操作'] = '攻击'
                 else:
                     操作词典['动作操作'] = '无动作'
-                路径_a = 图片路径 + '{}.jpg'.format(str(i))
                 imgA.save(路径_a)
                 if 自动 == 0:
                     操作词典['结束'] = 1
@@ -388,7 +388,6 @@ while True:
                         break
 
                     time.sleep(0.01)
-                路径_a = 图片路径 + '{}.jpg'.format(str(i))
                 imgA.save(路径_a)
                 自动 = 0
                 操作词典['结束'] = 0

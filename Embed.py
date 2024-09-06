@@ -4,7 +4,6 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.autograd import Variable
 
 
 class Embedder(nn.Module):
@@ -34,14 +33,27 @@ class PositionalEncoder(nn.Module):
         pe = pe.unsqueeze(0)
         self.register_buffer('pe', pe)
 
+    # from torch.autograd import Variable
+    # def forward(self, x):
+    #     # make embeddings relatively larger
+    #     x = x * math.sqrt(self.d_model)
+    #     # add constant to embedding
+    #     seq_len = x.size(1)
+    #     pe = Variable(self.pe[:, :seq_len], requires_grad=False)
+    #     if x.is_cuda:
+    #         pe.cuda()
+    #     x = x + pe
+    #     x = self.dropout(x)
+    #     return x
     def forward(self, x):
+        """在较新的 PyTorch 版本中，不需要使用 Variable，直接使用张量操作。如果要防止某些张量被计算梯度，可以使用 .detach() 方法。"""
         # make embeddings relatively larger
         x = x * math.sqrt(self.d_model)
         # add constant to embedding
         seq_len = x.size(1)
-        pe = Variable(self.pe[:, :seq_len], requires_grad=False)
+        pe = self.pe[:, :seq_len].detach()
         if x.is_cuda:
-            pe.cuda()
+            pe = pe.cuda(x.device)
         x = x + pe
         x = self.dropout(x)
         return x
@@ -83,7 +95,7 @@ class Embedder2(nn.Module):
             with torch.no_grad():
                 self.weight[self.padding_idx].fill_(0)
 
-    def forward(self, input):
+    def forward(self, item):
         return F.embedding(
-            input, self.weight, self.padding_idx, self.max_norm,
+            item, self.weight, self.padding_idx, self.max_norm,
             self.norm_type, self.scale_grad_by_freq, self.sparse)

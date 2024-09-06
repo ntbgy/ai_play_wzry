@@ -40,7 +40,15 @@ def 取图(窗口名称):
     im_PIL = Image.frombuffer('RGB',
                               (bmpinfo['bmWidth'], bmpinfo['bmHeight']),
                               bmpstr, 'raw', 'BGRX')
-    box = (8, 31, 968, 511)
+    # 定义裁剪区域（左上角坐标，右下角坐标）
+    """
+    [server] INFO: Device: [HUAWEI] HUAWEI LIO-AN00 (Android 9)
+    [server] WARN: Audio disabled: it is not supported before Android 11
+    INFO: Renderer: direct3d
+    WARN: Demuxer 'audio': stream explicitly disabled by the device
+    INFO: Texture: 960x432
+    """
+    box = (8, 31, 968, 463)
     im2 = im_PIL.crop(box)
     win32gui.DeleteObject(saveBitMap.GetHandle())
     saveDC.DeleteDC()
