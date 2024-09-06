@@ -241,13 +241,13 @@ device = torch.device("cuda:0" if (torch.cuda.is_available()) else "cpu")
 mod = torchvision.models.resnet101(pretrained=True).eval().cuda(device).requires_grad_(False)
 resnet101 = myResnet(mod)
 
-图片路径 = training_data_save_directory + '/{}/'.format(str(int(time.time())))
-os.mkdir(图片路径)
-记录文件 = open(图片路径 + '_操作数据.json', 'w+')
 try:
     while True:
         if AI打开 is False:
             continue
+        图片路径 = training_data_save_directory + '/{}/'.format(str(int(time.time())))
+        os.mkdir(图片路径)
+        记录文件 = open(图片路径 + '_操作数据.json', 'w+')
         图片张量 = torch.Tensor(0)
         操作张量 = torch.Tensor(0)
 
@@ -399,7 +399,11 @@ try:
         time.sleep(1)
         logger.info(('AI打开', AI打开))
 except KeyboardInterrupt:
-    pyminitouch_device.stop()
-    记录文件.close()
-    time.sleep(0.5)
     logger.warning("用户中断了程序的运行")
+    pyminitouch_device.stop()
+    try:
+        # noinspection PyUnboundLocalVariable
+        记录文件.close()
+    except NameError as e:
+        logger.warning(e)
+    time.sleep(0.5)
