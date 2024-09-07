@@ -47,9 +47,7 @@ S键按下 = False
 A键按下 = False
 D键按下 = False
 Q键按下 = False
-攻击态 = False
 手动模式 = False
-攻击放开 = True
 AI打开 = True
 操作列 = []
 自动 = 0
@@ -118,9 +116,11 @@ def on_press(key):
     global fun_start, time_interval, index, \
         数据字典, count, count_dict, W键按下, \
         S键按下, A键按下, D键按下, 手动模式, \
-        操作列, AI打开, 攻击放开, Q键按下, 攻击态
+        操作列, AI打开, Q键按下
+    # 哎，.lower() 这里给自己坑死了
     key_name = get_key_name(key).lower()
     manual_manipulation = ''
+    lock.acquire()
     if key_name == 'w':
         W键按下 = True
     elif key_name == 'a':
@@ -133,12 +133,6 @@ def on_press(key):
         Q键按下 = True
     elif key_name == 'i':
         AI打开 = bool(1 - AI打开)
-    elif key_name == 'Key.space':
-        manual_manipulation = '召唤师技能'
-    elif key_name == 'Key.end':
-        manual_manipulation = '补刀'
-    elif key_name == 'Key.page_down':
-        manual_manipulation = '推塔'
     elif key_name == 'j':
         manual_manipulation = '一技能'
     elif key_name == 'k':
@@ -151,24 +145,41 @@ def on_press(key):
         manual_manipulation = '恢复'
     elif key_name == 'h':
         manual_manipulation = '召唤师技能'
-    elif key_name == 'Key.left':
+    elif key_name == 'key.left':
         manual_manipulation = '一技能'
-    elif key_name == 'Key.down':
+    elif key_name == 'key.down':
         manual_manipulation = '二技能'
-    elif key_name == 'Key.right':
+    elif key_name == 'key.right':
         manual_manipulation = '三技能'
-    elif key_name == 'Key.up':
-        攻击态 = True
-    lock.acquire()
-    if manual_manipulation != '':
+    elif key_name == 'key.space':
+        # 待定
+        pass
+    elif key_name == 'key.up':
+        # 暂定攻击
+        manual_manipulation = '攻击'
+    elif key_name == 'key.delete':
+        manual_manipulation = '补刀'
+    elif key_name == 'key.end':
+        manual_manipulation = '攻击'
+    elif key_name == 'key.page_down':
+        manual_manipulation = '推塔'
+
+    if manual_manipulation in ('回城', '恢复'):
+        操作列.insert(0, manual_manipulation)
+    elif manual_manipulation != '':
         操作列.append(manual_manipulation)
     lock.release()
 
 
 # 监听释放
 def on_release(key):
-    global start, fun_start, time_interval, index, count, count_dict, W键按下, S键按下, A键按下, D键按下, 攻击放开, Q键按下, 攻击态
+    global start, fun_start, time_interval, index, count, count_dict, \
+        W键按下, S键按下, A键按下, D键按下, \
+        Q键按下
     key_name = get_key_name(key)
+    if key == Key.esc:
+        logger.info('停止监听')
+        return False
     if key_name == 'w':
         W键按下 = False
     elif key_name == 'a':
@@ -179,13 +190,6 @@ def on_release(key):
         D键按下 = False
     elif key_name == 'q':
         Q键按下 = False
-    elif key_name == 'Key.up':
-        攻击态 = False
-    logger.info(("已经释放:", key_name))
-    if key == Key.esc:
-        # 停止监听
-        logger.info('停止监听')
-        return False
 
 
 # 开始监听
@@ -217,9 +221,10 @@ def 处理方向():
     else:
         return ''
 
+
 # 批量跑就不执行监听程序了
-# th = threading.Thread(target=start_listen, )
-# th.start()  # 启动线程
+th = threading.Thread(target=start_listen, )
+th.start()  # 启动线程
 
 词数词典路径 = "./json/词_数表.json"
 数_词表路径 = "./json/数_词表.json"
@@ -246,11 +251,8 @@ try:
         记录文件 = open(图片路径 + '_操作数据.json', 'w+')
         图片张量 = torch.Tensor(0)
         操作张量 = torch.Tensor(0)
-
         伪词序列 = torch.from_numpy(np.ones((1, 60)).astype(np.int64)).cuda(device).unsqueeze(0)
-
         指令延时 = 0
-
         操作序列 = np.ones((1,))
         操作序列[0] = 128
         计数 = 0
@@ -313,7 +315,7 @@ try:
                 指令集 = 指令.split('_')
                 操作词典['图片号'] = str(i)
                 方向结果 = 处理方向()
-                if 方向结果 != '' or len(操作列) != 0 or 攻击态 == True:
+                if 方向结果 != '' or len(操作列) != 0:
                     if 方向结果 == '':
                         操作词典['移动操作'] = 指令集[0]
                     else:
@@ -323,8 +325,6 @@ try:
                         lock.acquire()
                         del 操作列[0]
                         lock.release()
-                    elif 攻击态 is True:
-                        操作词典['动作操作'] = '攻击'
                     else:
                         操作词典['动作操作'] = '无动作'
                     imgA.save(路径_a)
