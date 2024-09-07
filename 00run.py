@@ -4,7 +4,7 @@ import subprocess
 from airtest.cli.parser import cli_setup
 from airtest.core.api import *
 
-from auto.王者荣耀.对战.对战 import 离线5v5
+from auto.王者荣耀.对战.对战 import 在线5V5
 from common.airtestProjectsCommon import clean_log, os_chdir_modules, get_now_img_txt
 from common.my_logger import logger
 
@@ -29,7 +29,7 @@ dir_path = os.path.dirname(os.path.abspath(__file__))
 def start_game():
     logger.info('start_game')
     os_chdir_modules('auto.王者荣耀.对战.对战')
-    离线5v5(dir_path)
+    在线5V5(dir_path)
     os.chdir(dir_path)
 
 # 模拟检测游戏是否结束的程序
@@ -48,7 +48,7 @@ def check_game_status():
 def run():
     if os.path.exists('stop_flag.txt'):
         os.remove('stop_flag.txt')
-    for i in range(0):
+    for i in range(6):
         logger.info(f'第{i+1}局游戏开始！')
         start_game()
         script_path = os.path.join(dir_path, '01训练数据截取.py')
