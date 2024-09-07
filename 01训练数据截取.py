@@ -217,9 +217,9 @@ def 处理方向():
     else:
         return ''
 
-
-th = threading.Thread(target=start_listen, )
-th.start()  # 启动线程
+# 批量跑就不执行监听程序了
+# th = threading.Thread(target=start_listen, )
+# th.start()  # 启动线程
 
 词数词典路径 = "./json/词_数表.json"
 数_词表路径 = "./json/数_词表.json"
@@ -241,8 +241,6 @@ resnet101 = myResnet(mod)
 
 try:
     while True:
-        if AI打开 is False:
-            continue
         图片路径 = training_data_save_directory + '/{}/'.format(str(int(time.time())))
         os.mkdir(图片路径)
         记录文件 = open(图片路径 + '_操作数据.json', 'w+')
@@ -259,6 +257,9 @@ try:
         time_start = time.time()
         旧指令 = '移动停'
         for i in range(100 * 1000):
+            # 检查标记文件
+            if os.path.exists('stop_flag.txt'):
+                break
             if AI打开 is False:
                 break
             try:
@@ -395,6 +396,14 @@ try:
                 计数 = 计数 + 1
         记录文件.close()
         time.sleep(1)
+        # 检查标记文件
+        if os.path.exists('stop_flag.txt'):
+            pyminitouch_device.stop()
+            os.remove('stop_flag.txt')
+            logger.debug("删除标记文件")
+            break
+        if AI打开 is False:
+            continue
         logger.info(('AI打开', AI打开))
 except KeyboardInterrupt:
     logger.warning("用户中断了程序的运行")

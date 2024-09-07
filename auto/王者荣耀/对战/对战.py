@@ -95,7 +95,7 @@ def 离线5v5(dir_path):
     ocr_now_touch('确定', dir_path)
     sleep(1)
     ocr_now_touch('确定', dir_path)
-    sleep(1)
+    sleep(6)
     print('开始离线5v5')
 
 if __name__ == '__main__':

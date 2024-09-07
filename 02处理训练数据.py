@@ -27,8 +27,8 @@ for 号 in dirnames:
     路径json = 操作记录 + '/' + 号 + '/_操作数据.json'
     numpy数组路径 = 操作记录 + '/' + 号 + '/图片_操作预处理数据2.npz'
     # 如果已经处理过了就不用重复处理了
-    if os.path.isfile(numpy数组路径):
-        continue
+    # if os.path.isfile(numpy数组路径):
+    #     continue
 
     图片张量 = torch.Tensor(0)
 
@@ -87,7 +87,10 @@ for 号 in dirnames:
                     移动操作 = 移动操作a
                 操作序列 = np.append(操作序列, 词数词典[移动操作 + "_" + df["动作操作"]])
                 结束序列 = np.append(结束序列, df["结束"])
-                # 操作序列[0, 0] = 词数词典[df["移动操作"] + "_" + df["动作操作"]]
+            # 手动释放不再需要的 GPU 张量占用的内存
+            del img
+            del img2
+            torch.cuda.empty_cache()
 
         图片张量np = 图片张量.cpu().numpy()
         操作序列 = 操作序列.astype(np.int64)

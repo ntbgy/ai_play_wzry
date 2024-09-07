@@ -1,13 +1,11 @@
 import logging
 import subprocess
-import threading
-from pipes import Template
 
 from airtest.cli.parser import cli_setup
 from airtest.core.api import *
 
 from auto.王者荣耀.对战.对战 import 离线5v5
-from common.airtestProjectsCommon import clean_log, os_chdir_modules
+from common.airtestProjectsCommon import clean_log, os_chdir_modules, get_now_img_txt
 from common.my_logger import logger
 
 # 设置日志级别
@@ -35,32 +33,37 @@ def start_game():
     os.chdir(dir_path)
 
 # 模拟检测游戏是否结束的程序
-def check_game_status(process):
+def check_game_status():
     game_running = True
     while game_running:
-        time.sleep(2 * 60)
-        if (not exists(Template(filename='攻击1.png'))) and (not exists(Template(filename='攻击2.png'))):
+        txt = get_now_img_txt(dir_path)
+        if ('返回大厅' in txt
+        or '再来一局' in txt):
             game_running = False
             logger.info("检测到游戏结束")
-    if process.poll() is None:
-        process.terminate()
+            logger.debug('创建标记文件')
+            with open('stop_flag.txt', 'w') as f:
+                f.write('stop')
 
 def run():
-    for i in range(35):
+    if os.path.exists('stop_flag.txt'):
+        os.remove('stop_flag.txt')
+    for i in range(0):
         logger.info(f'第{i+1}局游戏开始！')
         start_game()
         script_path = os.path.join(dir_path, '01训练数据截取.py')
         process = subprocess.Popen([r'C:\Users\ntbgy\.conda\envs\wzry38\python.exe', script_path])
-        stop_event = threading.Event()
-        time.sleep(6 * 60)
-        check_thread = threading.Thread(target=check_game_status, args=(process,))
-        check_thread.start()
-        check_thread.join()
-        logger.info("结束 AI 线程")
-        time.sleep(5)
+        print("子进程 ID:", process.pid)
+        check_game_status()
+        while True:
+            if not os.path.exists('stop_flag.txt'):
+                logger.info("已结束 AI 线程")
+                process.kill()
+                break
         logger.info(f'第{i + 1}局游戏结束！')
 
     os.system(r'C:\Users\ntbgy\.conda\envs\wzry38\python.exe 02处理训练数据.py')
+    time.sleep(5)
     os.system(r'C:\Users\ntbgy\.conda\envs\wzry38\python.exe 03训练主模型.py')
     logger.info('done')
 

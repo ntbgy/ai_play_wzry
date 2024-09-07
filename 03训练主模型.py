@@ -8,6 +8,16 @@ from 杂项 import *
 from 模型_策略梯度 import Transformer
 from 模型_策略梯度 import 智能体
 
+状态辞典 = {
+    "击杀小兵或野怪或推掉塔": 1,
+    "击杀敌方英雄": 2,
+    "被击塔攻击": -1,
+    "被击杀": -1,
+    "无状况": -0.001,
+    "死亡": -0.01,
+    "其它": -0.001,
+    "普通": -0.001
+}
 状态辞典B = {
     "击杀小兵或野怪或推掉塔": 0,
     "击杀敌方英雄": 1,
@@ -16,19 +26,8 @@ from 模型_策略梯度 import 智能体
     "死亡": 4,
     "普通": 5
 }
-状态辞典 = {
-    "击杀小兵或野怪或推掉塔": 3,
-    "击杀敌方英雄": 4,
-    "被击塔攻击": -2,
-    "被击杀": -1,
-    "无状况": 0.000,
-    "死亡": 0.000,
-    "其它": -0.000,
-    "普通": 0.000
-}
-状态列表 = []
-for K in 状态辞典B:
-    状态列表.append(K)
+
+状态列表 = [K for K in 状态辞典B]
 训练数据保存目录 = 'E:/训练数据样本/未用'
 if not os.path.exists(训练数据保存目录):
     os.makedirs(训练数据保存目录)
@@ -134,23 +133,10 @@ for j in range(100):
                     回报[计数] = 得分
 
                 智能体.监督强化学习(device, 状态, 回报, 动作, 动作可能性, 评价)
-
-                # 输出_实际_A = model(图片_分_torch,操作_分_torch ,trg_mask)
-                # lin = 输出_实际_A.view(-1, 输出_实际_A.size(-1))
-                # optimizer.zero_grad()
-                # loss = F.cross_entropy(lin, 目标输出_分_torch.contiguous().view(-1), ignore_index=-1)
                 if 计数 % 1 == 0:
-                    # print(loss)
                     time_end = time.time()
                     用时 = time_end - time_start
-                    # _, 抽样 = torch.topk(输出_实际_A, k=1, dim=-1)
-                    # 抽样np = 抽样.cpu().numpy()
-                    # 打印抽样数据(数_词表, 抽样np[0:1,:,:], 目标输出_分_torch[0,:])
-                    # print("用时{} 第{}轮 第{}张 号{}".format(用时, j, 计数, 号))
-                if 计数 % 45060 == 0:
-                    print('888')
-                # loss.backward()
-                # optimizer.step()
+                    print(用时)
                 计数 = 计数 + 1
                 i = i + 1
     智能体.保存模型(j)
