@@ -1,10 +1,10 @@
 import json
 import time
 
+from common.env import device_id
 from 运行辅助 import MyMNTDevice
 
-# device = MyMNTDevice('emulator-5554')
-device = MyMNTDevice('2b59a9ea')
+device = MyMNTDevice(device_id)
 
 
 def 操作测试1():

@@ -136,7 +136,11 @@ def get_middle_coordinate(coordinates: list):
 
 
 def clean_airtest_log(name='log'):
-    paths = get_dirs_path(os.path.dirname(os.path.abspath(__file__)))
+    paths = get_dirs_path(
+        os.path.dirname(os.path.dirname(
+            os.path.abspath(__file__)
+        ))
+    )
     for path in paths:
         base_name = os.path.basename(path)
         if base_name == name:

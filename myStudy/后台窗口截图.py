@@ -3,20 +3,10 @@ import ctypes
 import win32gui
 import win32ui
 from PIL import Image
-from pyminitouch import MNTDevice
 
 
-class MyMNTDevice(MNTDevice):
-    def __init__(self, ID):
-        MNTDevice.__init__(self, ID)
-
-    def 发送(self, 内容):
-        self.connection.send(内容)
-
-
-def get_window_image(hwnd):
+def _get_window_image(hwnd):
     """窗口不能最小化哦！"""
-    hwnd = win32gui.FindWindow(None, hwnd)
     # 获取整个窗口的位置和尺寸
     # left, top, right, bottom = win32gui.GetWindowRect(hwnd)
     left, top, right, bottom = win32gui.GetClientRect(hwnd)
@@ -61,5 +51,7 @@ def get_window_image(hwnd):
 
 
 if __name__ == '__main__':
-    image = get_window_image('LIO-AN00')
-    image.save(r"C:\Users\ntbgy\Desktop\log.jpg")
+    # 获取窗口句柄（根据实际情况修改窗口标题）
+    hwnd = win32gui.FindWindow(None, "LIO-AN00")
+    image = _get_window_image(hwnd)
+    image.save('window_screenshot.png')

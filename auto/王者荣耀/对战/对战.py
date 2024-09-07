@@ -11,7 +11,10 @@ def 在线5V5(dir_path):
     if '对战' in txt:
         pass
     elif ('继续' in txt
-          or '返回大厅' in txt):
+          or '返回大厅' in txt
+          or '胜利' in txt
+          or '失败' in txt
+    ):
         结束对战回到首页(dir_path)
     else:
         raise ValueError('请先手工进入游戏首页，并手工进入开始匹配，但不用匹配游戏，再退出回到首页！')
@@ -29,25 +32,26 @@ def 在线5V5(dir_path):
     sleep(1)
     for i in range(10):
         txt = get_now_img_txt(dir_path)
-        if '确认' in txt:
+        if '匹配成功' in txt:
             ocr_now_touch('确认',dir_path)
             sleep(3)
             break
         if i == 9:
             raise ValueError("进不去了",dir_path)
-        touch((694, 666))
-        sleep(1)
-        ocr_now_touch('射手', dir_path)
-        sleep(1)
-        ocr_now_touch('确定', dir_path)
+    touch((694, 666))
+    sleep(1)
+    ocr_now_touch('射手', dir_path)
+    sleep(1)
+    ocr_now_touch('确定', dir_path)
     for i in range(5):
         txt = get_now_img_txt(dir_path)
-        if '确认' in txt:
-            ocr_now_touch('确认',dir_path)
+        if '确定' in txt:
+            ocr_now_touch('确定',dir_path)
             sleep(2)
             break
 
 def 结束对战回到首页(dir_path):
+    sleep(5)
     ocr_now_touch('继续',dir_path)
     sleep(1)
     ocr_now_touch('继续',dir_path)

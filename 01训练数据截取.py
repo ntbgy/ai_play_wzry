@@ -263,7 +263,7 @@ try:
             if AI打开 is False:
                 break
             try:
-                imgA = 取图(scrcpy_windows_name)
+                imgA = get_window_image(scrcpy_windows_name)
             except:
                 AI打开 = False
                 logger.info('取图失败！')
