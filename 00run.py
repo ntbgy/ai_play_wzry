@@ -48,7 +48,7 @@ def check_game_status():
 def run():
     if os.path.exists('stop_flag.txt'):
         os.remove('stop_flag.txt')
-    for i in range(6):
+    for i in range(1):
         logger.info(f'第{i+1}局游戏开始！')
         start_game()
         script_path = os.path.join(dir_path, '01训练数据截取.py')

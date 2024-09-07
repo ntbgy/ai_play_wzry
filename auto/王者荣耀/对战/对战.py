@@ -6,33 +6,63 @@ from airtest.report.report import simple_report
 from common.airtestProjectsCommon import *
 
 
-def 进入对战():
-    ocr_now_touch('对战')
+def 在线5V5(dir_path):
+    txt = get_now_img_txt(dir_path)
+    if '对战' in txt:
+        pass
+    elif ('继续' in txt
+          or '返回大厅' in txt):
+        结束对战回到首页(dir_path)
+    else:
+        raise ValueError('请先手工进入游戏首页，并手工进入开始匹配，但不用匹配游戏，再退出回到首页！')
+    ocr_now_touch('对战', dir_path)
     sleep(1)
-    ocr_now_touch('王者峡谷')
+    ocr_now_touch('王者峡谷',dir_path)
     sleep(1)
-    ocr_now_touch('人机')
+    ocr_now_touch('人机',dir_path)
     sleep(1)
-    ocr_now_touch('难度1')
+    ocr_now_touch('难度1',dir_path)
     sleep(1)
-    ocr_now_touch('开始练习')
-    sleep(1)
-    ocr_now_touch('开始匹配')
+    ocr_now_touch('开始练习',dir_path)
+    sleep(3)
+    ocr_now_touch('开始匹配',dir_path)
     sleep(1)
     for i in range(10):
-        txt = get_now_img_txt()
+        txt = get_now_img_txt(dir_path)
         if '确认' in txt:
-            ocr_now_touch('确认')
-            sleep(1)
-        else:
-            sleep(5)
+            ocr_now_touch('确认',dir_path)
+            sleep(2)
+            break
         if i == 9:
-            raise ValueError("进不去了")
+            raise ValueError("进不去了",dir_path)
+        touch((694, 666))
+        sleep(1)
+        ocr_now_touch('射手', dir_path)
+        sleep(1)
+        ocr_now_touch('确定', dir_path)
+    for i in range(5):
+        txt = get_now_img_txt(dir_path)
+        if '确认' in txt:
+            ocr_now_touch('确认',dir_path)
+            sleep(2)
+            break
 
-
-def 结束对战回到首页():
-    pass
-
+def 结束对战回到首页(dir_path):
+    ocr_now_touch('继续',dir_path)
+    sleep(1)
+    ocr_now_touch('继续',dir_path)
+    sleep(1)
+    ocr_now_touch('返回大厅',dir_path)
+    sleep(1)
+    ocr_now_touch('确定',dir_path)
+    sleep(1)
+    touch((0.5,0.5))
+    sleep(1)
+    if '确定' in get_now_img_txt(dir_path):
+        ocr_now_touch('确定', dir_path)
+        sleep(1)
+    if '对战' not in get_now_img_txt(dir_path):
+        raise ValueError("结束对战回到首页 失败！")
 
 def 离线1v1():
     # 需要先手工登录一个账号，退出了不行~
@@ -116,10 +146,10 @@ if __name__ == '__main__':
     # 获取当前文件绝对路径
     dir_path = os.path.dirname(os.path.abspath(__file__))
     try:
-        离线5v5(dir_path)
+        在线5V5(dir_path)
     except:
         pass
     # 生成报告
     simple_report(__file__, logpath=True, output=f"{dir_path}\\log\\log.html")
     # 打开报告
-    os.startfile(f"{dir_path}\\log\\log.html")
+    # os.startfile(f"{dir_path}\\log\\log.html")
