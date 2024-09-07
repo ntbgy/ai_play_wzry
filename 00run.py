@@ -38,7 +38,11 @@ def check_game_status():
     while game_running:
         txt = get_now_img_txt(dir_path)
         if ('返回大厅' in txt
-        or '再来一局' in txt):
+        or '再来一局' in txt
+        or '继续' in txt
+        or '胜利' in txt
+        or '失败' in txt
+        ):
             game_running = False
             logger.info("检测到游戏结束")
             logger.debug('创建标记文件')
@@ -48,7 +52,7 @@ def check_game_status():
 def run():
     if os.path.exists('stop_flag.txt'):
         os.remove('stop_flag.txt')
-    for i in range(1):
+    for i in range(6):
         logger.info(f'第{i+1}局游戏开始！')
         start_game()
         script_path = os.path.join(dir_path, '01训练数据截取.py')
@@ -62,6 +66,11 @@ def run():
                 break
         logger.info(f'第{i + 1}局游戏结束！')
 
+    stop_app("com.tencent.tmgp.sgame")
+    sleep(1.0)
+    home()
+    sleep(1.0)
+    start_app("com.tencent.tmgp.sgame")
     os.system(r'C:\Users\ntbgy\.conda\envs\wzry38\python.exe 02处理训练数据.py')
     time.sleep(5)
     os.system(r'C:\Users\ntbgy\.conda\envs\wzry38\python.exe 03训练主模型.py')

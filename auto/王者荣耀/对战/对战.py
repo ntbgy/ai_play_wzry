@@ -31,7 +31,7 @@ def 在线5V5(dir_path):
         txt = get_now_img_txt(dir_path)
         if '确认' in txt:
             ocr_now_touch('确认',dir_path)
-            sleep(2)
+            sleep(3)
             break
         if i == 9:
             raise ValueError("进不去了",dir_path)
