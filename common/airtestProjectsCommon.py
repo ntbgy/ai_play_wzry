@@ -1,6 +1,6 @@
-from common.env import sleep_time
-
-print(f"sleep_time = {sleep_time}")
+# from common.env import sleep_time
+#
+# print(f"sleep_time = {sleep_time}")
 import os.path
 import shutil
 import sys
@@ -56,6 +56,7 @@ def ocr_touch(target_text, pic_path):
 
     # 使用Airtest点击坐标
     if target_coords:
+        print(f'正在点击【{target_text}】，坐标{target_coords}')
         touch(target_coords)
         return True
     else:

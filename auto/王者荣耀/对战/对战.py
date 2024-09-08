@@ -42,6 +42,8 @@ def 在线5V5(dir_path):
     sleep(1)
     ocr_now_touch('射手', dir_path)
     sleep(1)
+    touch(Template(filename='屏幕截图 2024-09-06 083341.png'))
+    sleep(1)
     ocr_now_touch('确定', dir_path)
     for i in range(5):
         txt = get_now_img_txt(dir_path)
@@ -99,13 +101,16 @@ def 离线1v1():
     ocr_now_touch('开始对战')
     sleep(5)
     return '开始对战'
-def 离线5v5(dir_path):
+def 离线5V5(dir_path):
     # 需要先手工登录一个账号，退出了不行~
     txt = get_now_img_txt(dir_path)
     if '返回大厅' in txt:
         ocr_now_touch('返回大厅', dir_path)
-        sleep(3)
-    elif '5v5模式' not in txt:
+        sleep(2)
+    elif '开始游戏' in txt:
+        touch(Template(filename='屏幕截图 2024-09-06 082752.png'))
+        sleep(2)
+    elif '5V5模式' not in txt:
         # 直接重启吧~
         stop_app("com.tencent.tmgp.sgame")
         sleep(1.0)
@@ -115,7 +120,7 @@ def 离线5v5(dir_path):
         sleep(20)
         touch(Template(filename='屏幕截图 2024-09-06 082752.png'))
         sleep(2)
-    ocr_now_touch('5v5模式', dir_path)
+    ocr_now_touch('5V5模式', dir_path)
     sleep(1)
     ocr_now_touch('开始练习', dir_path)
     sleep(1)
@@ -129,8 +134,8 @@ def 离线5v5(dir_path):
     ocr_now_touch('确定', dir_path)
     sleep(1)
     ocr_now_touch('确定', dir_path)
-    sleep(6)
-    print('开始离线5v5')
+    sleep(5)
+    print('开始离线5V5')
 
 if __name__ == '__main__':
     # 设置日志级别

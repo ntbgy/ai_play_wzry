@@ -8,8 +8,7 @@ from pynput import keyboard
 from pynput.keyboard import Key, Listener
 
 from Batch import create_masks
-from common.airtestProjectsCommon import get_now_img_txt, ocr_now_touch
-from common.env import training_data_save_directory, device_id, scrcpy_windows_name
+from common.env import training_data_save_directory, device_id, scrcpy_windows_name, 是否手工接入
 from common.my_logger import logger
 from resnet_utils import myResnet
 from 取训练数据 import *
@@ -32,16 +31,13 @@ if not cli_setup():
     )
 # 获取当前文件绝对路径
 dir_path = os.path.dirname(os.path.abspath(__file__))
+# 训练数据样本
 if not os.path.exists(training_data_save_directory):
     os.makedirs(training_data_save_directory)
+# threading.Lock是 Python 中threading模块提供的一种简单的线程同步机制，用于实现互斥锁（Mutex Lock）。
+# 当一个线程获取了锁（通过lock.acquire()方法）后，其他线程在尝试获取该锁时将被阻塞，直到锁被释放（通过lock.release()方法）。
 lock = threading.Lock()
-start = time.time()
-fun_start = 0
-time_interval = 0
-数据字典 = {'interval_times': 0, 'max_interval': 0., 'interval_location': []}
-index = 0
-count = 0
-count_dict = {'first_time': 0., 'first_p_to_second_r': 0.}
+# 全局变量初始化
 W键按下 = False
 S键按下 = False
 A键按下 = False
@@ -59,52 +55,8 @@ AI打开 = True
     输入维度=6
 )
 
-
-def 单机模式返回大厅并重新开始1v1(txt=None):
-    """不知道为什么后面调用，airtest的touch会点不了，是某个touch没有释放么？"""
-    if txt is None:
-        txt = get_now_img_txt()
-    if '返回大厅' in txt:
-        ocr_now_touch('返回大厅')
-        sleep(5)
-    if '开始练习' in txt:
-        ocr_now_touch('1v1模式')
-        sleep(1)
-        ocr_now_touch('难度1')
-        sleep(1)
-        ocr_now_touch('开始练习')
-        sleep(2)
-    touch(Template(filename='auto/王者荣耀/对战/屏幕截图 2024-09-06 083209.png'))
-    sleep(1)
-    ocr_now_touch('射手')
-    sleep(1)
-    touch(Template(filename='auto/王者荣耀/对战/屏幕截图 2024-09-06 083341.png'))
-    sleep(1)
-    ocr_now_touch('挑选对手')
-    sleep(1)
-    touch(Template(filename='auto/王者荣耀/对战/屏幕截图 2024-09-06 083209.png'))
-    sleep(1)
-    ocr_now_touch('射手')
-    sleep(1)
-    touch(Template(filename='auto/王者荣耀/对战/屏幕截图 2024-09-06 083529.png'))
-    sleep(1)
-    ocr_now_touch('开始对战')
-    sleep(3)
-
-
-# txt = get_now_img_txt(dir_path)
-# if '返回大厅' in txt or '开始练习' in txt:
-#     try:
-#         返回大厅并重新开始1v1(txt)
-#     except TargetNotFoundError as e:
-#         # 生成报告
-#         simple_report(__file__, logpath=True, output=f"{dir_path}\\log\\log.html")
-#         # 打开报告
-#         os.startfile(f"{dir_path}\\log\\log.html")
-#         raise TargetNotFoundError(e)
-
-
-def get_key_name(key):
+def get_key_name(key)->str:
+    """从pynput.keyboard模块中的按键对象中提取出一个可识别的键名"""
     if isinstance(key, keyboard.KeyCode):
         return key.char
     else:
@@ -113,10 +65,8 @@ def get_key_name(key):
 
 # 监听按压
 def on_press(key):
-    global fun_start, time_interval, index, \
-        数据字典, count, count_dict, W键按下, \
-        S键按下, A键按下, D键按下, 手动模式, \
-        操作列, AI打开, Q键按下
+    global W键按下, S键按下, A键按下, D键按下, \
+        操作列, Q键按下
     # 哎，.lower() 这里给自己坑死了
     key_name = get_key_name(key).lower()
     manual_manipulation = ''
@@ -131,8 +81,8 @@ def on_press(key):
         D键按下 = True
     elif key_name == 'q':
         Q键按下 = True
-    elif key_name == 'i':
-        AI打开 = bool(1 - AI打开)
+    # elif key_name == 'i':
+    #     AI打开 = bool(1 - AI打开)
     elif key_name == 'j':
         manual_manipulation = '一技能'
     elif key_name == 'k':
@@ -173,8 +123,7 @@ def on_press(key):
 
 # 监听释放
 def on_release(key):
-    global start, fun_start, time_interval, index, count, count_dict, \
-        W键按下, S键按下, A键按下, D键按下, \
+    global W键按下, S键按下, A键按下, D键按下, \
         Q键按下
     key_name = get_key_name(key)
     if key == Key.esc:
@@ -222,9 +171,9 @@ def 处理方向():
         return ''
 
 
-# 批量跑就不执行监听程序了
-th = threading.Thread(target=start_listen, )
-th.start()  # 启动线程
+if 是否手工接入 is True:
+    th = threading.Thread(target=start_listen, )
+    th.start()  # 启动线程
 
 词数词典路径 = "./json/词_数表.json"
 数_词表路径 = "./json/数_词表.json"
@@ -238,12 +187,14 @@ with open(词数词典路径, encoding='utf8') as f:
     词数词典 = json.load(f)
 with open(操作查询路径, encoding='utf8') as f:
     操作查询词典 = json.load(f)
-
 pyminitouch_device = MyMNTDevice(device_id)
+# 加载预训练的 ResNet - 101 模型
+# 模型设置为评估模式
+# 将模型移动到指定的 GPU 设备上
+# 关闭梯度计算
 device = torch.device("cuda:0" if (torch.cuda.is_available()) else "cpu")
 mod = torchvision.models.resnet101(pretrained=True).eval().cuda(device).requires_grad_(False)
 resnet101 = myResnet(mod)
-
 try:
     while True:
         图片路径 = training_data_save_directory + '/{}/'.format(str(int(time.time())))
@@ -305,8 +256,8 @@ try:
                 pyminitouch_device.发送(操作查询词典['加二技能'])
                 pyminitouch_device.发送(操作查询词典['加三技能'])
                 pyminitouch_device.发送(操作查询词典['移动停'])
-                logger.info((旧指令, '周期'))
                 time.sleep(0.02)
+                logger.info((旧指令, '周期'))
                 pyminitouch_device.发送(操作查询词典[旧指令])
             路径_a = 图片路径 + '{}.jpg'.format(str(i))
             if 计数 % 1 == 0:
@@ -346,8 +297,11 @@ try:
                             logger.info('发送失败')
                             break
                         time.sleep(0.01)
-                    if 操作词典['动作操作'] != '无动作' and 操作词典['动作操作'] != '发起集合' and 操作词典[
-                        '动作操作'] != '发起进攻' and 操作词典['动作操作'] != '发起撤退':
+                    if (操作词典['动作操作'] != '无动作'
+                            and 操作词典['动作操作'] != '发起集合'
+                            and 操作词典['动作操作'] != '发起进攻'
+                            and 操作词典['动作操作'] != '发起撤退'):
+                        logger.debug(指令集)
                         logger.info(('手动', 指令集[1]))
                         try:
                             pyminitouch_device.发送(操作查询词典[操作词典['动作操作']])
@@ -359,26 +313,22 @@ try:
                     操作列 = []
                     操作词典['移动操作'] = 指令集[0]
                     操作词典['动作操作'] = 指令集[1]
-
                     新指令 = 指令集[0]
                     if 新指令 != 旧指令 and 新指令 != '无移动':
                         旧指令 = 新指令
                         try:
                             logger.info(旧指令)
                             pyminitouch_device.发送(操作查询词典[旧指令])
-
                         except:
                             AI打开 = False
                             logger.info('发送失败')
                             break
-
                         time.sleep(0.01)
                     imgA.save(路径_a)
                     自动 = 0
                     操作词典['结束'] = 0
                     json.dump(操作词典, 记录文件, ensure_ascii=False)
                     记录文件.write('\n')
-
                     新指令 = 操作词典['移动操作']
                     if 指令集[1] != '无动作' and 指令集[1] != '发起集合' and 指令集[1] != '发起进攻' and 指令集[
                         1] != '发起撤退':

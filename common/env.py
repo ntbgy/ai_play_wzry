@@ -7,3 +7,5 @@ load_weights = 'E:/weights'
 模型名称 = 'model_weights_5v5.pth'
 保存模型名称 = 'model_weights_5v5.pth'
 training_data_save_directory = 'E:/训练数据样本/未用'
+# 不手工接入操作就不监听键盘事件
+是否手工接入 = True
