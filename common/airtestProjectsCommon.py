@@ -45,7 +45,7 @@ def ocr_touch(target_text, pic_path):
             # 获取识别结果的文字信息
             textinfo = word_info[1][0]
             txt += textinfo + '\n'
-            if target_text in textinfo:
+            if target_text.lower() in textinfo.lower():
                 # 获取文字的坐标（中心点）
                 x1, y1 = word_info[0][0]
                 x2, y2 = word_info[0][2]
@@ -106,10 +106,8 @@ def get_img_txt(pic_path) -> str:
     pic_path = str(pic_path)
     # 初始化PaddleOCR
     ocr = PaddleOCR(use_angle_cls=True, lang='ch')  # 可以根据需要选择语言
-
     # 使用PaddleOCR识别图片文字
     ocr_result = ocr.ocr(pic_path, cls=True)
-
     txt = ''
     for line in ocr_result:
         if not line:
