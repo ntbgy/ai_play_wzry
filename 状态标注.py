@@ -1,3 +1,10 @@
+r"""
+conda install pyqt
+QT_QPA_PLATFORM_PLUGIN_PATH
+C:\Users\ntbgy\.conda\envs\wzry38\Lib\site-packages\PyQt5\Qt5\plugins\platforms
+echo %QT_QPA_PLATFORM_PLUGIN_PATH%
+
+"""
 import os
 import random
 import sys
@@ -22,10 +29,9 @@ from 模型_策略梯度 import 智能体
 from 辅助功能 import 状态信息综合
 from 运行辅助 import MyMNTDevice
 
-# window = int(subprocess.check_output(["xdotool", "search" ,"VehiclePhysicsExampleeeveed181"]).decode('ascii').split('\n')[0])
-_DEVICE_ID = '68UDU17B14011947'
-窗口名称 = "RNE-AL00"
-window = win32gui.FindWindow(0, 窗口名称)
+device_id = 'emulator-5554'
+scrcpy_windows_name = "LIO-AN00"
+window = win32gui.FindWindow(0, scrcpy_windows_name)
 
 device = torch.device("cuda:0" if (torch.cuda.is_available()) else "cpu")
 mod = torchvision.models.resnet101(pretrained=True).eval().cuda(device).requires_grad_(False)
@@ -75,7 +81,7 @@ with open(操作查询路径, encoding='utf8') as f:
     操作查询词典 = json.load(f)
 
 方向表 = ['上移', '下移', '左移', '右移', '左上移', '左下移', '右上移', '右下移']
-设备 = MyMNTDevice(_DEVICE_ID)
+设备 = MyMNTDevice(device_id)
 旧指令 = '移动停'
 一键按下 = False
 二键按下 = False
@@ -186,7 +192,7 @@ for i in range(6666666):
         img = screen.grabWindow(window)
         image = ImageQt.fromqimage(img)
         imgA = image.resize((960, 480))
-        # imgA = 取图(窗口名称)
+        # imgA = 取图(scrcpy_windows_name)
 
         图片数组 = np.asarray(imgA)
         截屏 = torch.from_numpy(图片数组).cuda(device).unsqueeze(0).permute(0, 3, 2, 1) / 255
@@ -268,8 +274,7 @@ for i in range(6666666):
                 保存事件时间 = str(int(time.time() * 100))
 
                 imgA.save(图片路径 + 保存事件时间 + '.jpg')
-                事件词典 = {}
-                事件词典[保存事件时间] = 状况
+                事件词典 = {保存事件时间: 状况}
                 记录文件 = open(图片路径 + '_判断数据.json', 'a+')
                 json.dump(事件词典, 记录文件, ensure_ascii=False)
                 记录文件.write('\n')
@@ -281,8 +286,7 @@ for i in range(6666666):
                 保存事件时间 = str(int(time.time() * 100))
 
                 imgA.save(图片路径 + 保存事件时间 + '.jpg')
-                事件词典 = {}
-                事件词典[保存事件时间] = 状况
+                事件词典 = {保存事件时间: 状况}
                 记录文件 = open(图片路径 + '_判断数据.json', 'a+')
                 json.dump(事件词典, 记录文件, ensure_ascii=False)
                 记录文件.write('\n')
@@ -294,8 +298,7 @@ for i in range(6666666):
                 保存事件时间 = str(int(time.time() * 100))
 
                 imgA.save(图片路径 + 保存事件时间 + '.jpg')
-                事件词典 = {}
-                事件词典[保存事件时间] = 状况
+                事件词典 = {保存事件时间: 状况}
                 记录文件 = open(图片路径 + '_判断数据.json', 'a+')
                 json.dump(事件词典, 记录文件, ensure_ascii=False)
                 记录文件.write('\n')

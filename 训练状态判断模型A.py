@@ -51,12 +51,9 @@ def random_dic(dicts):
     return new_dic
 
 
-# model_判断状态=判断状态(6,1024,2048).cuda(device)
 model_判断状态 = Transformer(6, 768, 2, 12, 0.0, 6 * 6 * 2048).cuda(device)
-# model_判断状态.load_state_dict(torch.load('E:/weights/model_weights_判断状态C1'))
 optimizer = torch.optim.Adam(model_判断状态.parameters(), lr=6.25e-5, betas=(0.9, 0.98), eps=1e-9)
 路径json = '../判断数据样本/判断新.json'
-
 全部数据 = {}
 状态辞典 = {'击杀小兵或野怪或推掉塔': 0, '击杀敌方英雄': 1, '被击塔攻击': 2, '被击杀': 3, '死亡': 4, '普通': 5}
 状态列表 = []
@@ -106,5 +103,3 @@ for i in range(100):
 
         optimizer.step()
     torch.save(model_判断状态.state_dict(), 'E:/weights/model_weights_判断状态L')
-
-    torch.save(model_判断状态.state_dict(), 'E:/weights/model_weights_判断状态L{}'.format(str(i)))
