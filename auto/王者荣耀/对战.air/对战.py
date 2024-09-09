@@ -20,24 +20,24 @@ def 在线5V5(dir_path):
         raise ValueError('请先手工进入游戏首页，并手工进入开始匹配，但不用匹配游戏，再退出回到首页！')
     ocr_now_touch('对战', dir_path)
     sleep(1)
-    ocr_now_touch('王者峡谷',dir_path)
+    ocr_now_touch('王者峡谷', dir_path)
     sleep(1)
-    ocr_now_touch('人机',dir_path)
+    ocr_now_touch('人机', dir_path)
     sleep(1)
-    ocr_now_touch('难度1',dir_path)
+    ocr_now_touch('难度1', dir_path)
     sleep(1)
-    ocr_now_touch('开始练习',dir_path)
+    ocr_now_touch('开始练习', dir_path)
     sleep(3)
-    ocr_now_touch('开始匹配',dir_path)
+    ocr_now_touch('开始匹配', dir_path)
     sleep(1)
     for i in range(10):
         txt = get_now_img_txt(dir_path)
         if '匹配成功' in txt:
-            ocr_now_touch('确认',dir_path)
+            ocr_now_touch('确认', dir_path)
             sleep(3)
             break
         if i == 9:
-            raise ValueError("进不去了",dir_path)
+            raise ValueError("进不去了", dir_path)
     touch((694, 666))
     sleep(1)
     ocr_now_touch('射手', dir_path)
@@ -48,27 +48,29 @@ def 在线5V5(dir_path):
     for i in range(5):
         txt = get_now_img_txt(dir_path)
         if '确定' in txt:
-            ocr_now_touch('确定',dir_path)
+            ocr_now_touch('确定', dir_path)
             sleep(2)
             break
 
+
 def 结束对战回到首页(dir_path):
     sleep(5)
-    ocr_now_touch('继续',dir_path)
+    ocr_now_touch('继续', dir_path)
     sleep(1)
-    ocr_now_touch('继续',dir_path)
+    ocr_now_touch('继续', dir_path)
     sleep(1)
-    ocr_now_touch('返回大厅',dir_path)
+    ocr_now_touch('返回大厅', dir_path)
     sleep(1)
-    ocr_now_touch('确定',dir_path)
+    ocr_now_touch('确定', dir_path)
     sleep(1)
-    touch((0.5,0.5))
+    touch((0.5, 0.5))
     sleep(1)
     if '确定' in get_now_img_txt(dir_path):
         ocr_now_touch('确定', dir_path)
         sleep(1)
     if '对战' not in get_now_img_txt(dir_path):
         raise ValueError("结束对战回到首页 失败！")
+
 
 def 离线1v1():
     # 需要先手工登录一个账号，退出了不行~
@@ -101,6 +103,8 @@ def 离线1v1():
     ocr_now_touch('开始对战')
     sleep(5)
     return '开始对战'
+
+
 def 离线5V5(dir_path):
     # 需要先手工登录一个账号，退出了不行~
     txt = get_now_img_txt(dir_path)
@@ -110,6 +114,8 @@ def 离线5V5(dir_path):
     elif '开始游戏' in txt:
         touch(Template(filename='屏幕截图 2024-09-06 082752.png'))
         sleep(2)
+    elif '单机模式' in txt:
+        print('当前已进入单机模式')
     elif '5V5模式' not in txt:
         # 直接重启吧~
         stop_app("com.tencent.tmgp.sgame")
@@ -136,6 +142,7 @@ def 离线5V5(dir_path):
     ocr_now_touch('确定', dir_path)
     sleep(5)
     print('开始离线5V5')
+
 
 if __name__ == '__main__':
     # 设置日志级别

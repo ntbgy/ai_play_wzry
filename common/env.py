@@ -1,3 +1,5 @@
+project_root_path = r"C:\Users\ntbgy\PycharmProjects\ai-play-wzry"
+project_log_path = r"C:\Users\ntbgy\PycharmProjects\ai-play-wzry\log"
 device_id = 'emulator-5554'
 scrcpy_windows_name = "LIO-AN00"
 # 模拟器比真机要慢亿点点

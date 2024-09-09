@@ -5,6 +5,8 @@ C:\Users\ntbgy\.conda\envs\wzry38\Lib\site-packages\PyQt5\Qt5\plugins\platforms
 echo %QT_QPA_PLATFORM_PLUGIN_PATH%
 
 """
+from PIL import ImageQt
+from PyQt5.QtWidgets import QApplication
 import os
 import random
 import sys
@@ -15,8 +17,6 @@ import numpy as np
 import torch
 import torchvision
 import win32gui
-from PIL import ImageQt
-from PyQt5.QtWidgets import QApplication
 from pynput import keyboard
 from pynput.keyboard import Key, Listener
 

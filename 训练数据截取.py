@@ -1,18 +1,15 @@
-import logging
 import sys
 import threading
 from pathlib import Path
 
 import torchvision
-from airtest.cli.parser import cli_setup
 from airtest.core.api import *
 from pynput import keyboard
 from pynput.keyboard import Key, Listener
 
 from Batch import create_masks
-from common.airtestProjectsCommon import clean_log
 from common.airtestProjectsCommon import get_img_txt
-from common.env import training_data_save_directory
+from common.env import training_data_save_directory, project_root_path
 from common.my_logger import logger
 from resnet_utils import myResnet
 from 取训练数据 import *
@@ -164,9 +161,9 @@ def 训练数据截取(device_id, scrcpy_windows_name, 手工介入=True, flag_f
     if 手工介入 is True:
         th = threading.Thread(target=start_listen, )
         th.start()  # 启动线程
-    词数词典路径 = "./json/词_数表.json"
-    数_词表路径 = "./json/数_词表.json"
-    操作查询路径 = "./json/名称_操作.json"
+    词数词典路径 = f"{project_root_path}/json/词_数表.json"
+    数_词表路径 = f"{project_root_path}/json/数_词表.json"
+    操作查询路径 = f"{project_root_path}/json/名称_操作.json"
     操作词典 = {"图片号": "0", "移动操作": "无移动", "动作操作": "无动作"}
     if os.path.isfile(词数词典路径) and os.path.isfile(数_词表路径):
         词_数表, 数_词表 = 读出引索(词数词典路径, 数_词表路径)
@@ -391,40 +388,27 @@ def 训练():
 
 # 启动游戏
 # noinspection PyUnresolvedReferences
-def start_game(dir_path, devices="android:///"):
+def start_game(dir_path):
     """
     "android:///"
     "android://127.0.0.1:5037/emulator-5554"
     "android://127.0.0.1:5037/emulator-5556"
     """
-    # 设置日志级别
-    logger_airtest = logging.getLogger("airtest")
-    logger_ppocr = logging.getLogger("ppocr")
-    logger_ppocr.setLevel(logging.ERROR)
-    logger_airtest.setLevel(logging.ERROR)
-    # 清空存量日志
-    clean_log()
     sys.path.append('auto/王者荣耀/对战.air')
     using('auto/王者荣耀/对战.air')
     from 对战 import 离线5V5
-    # 连接设备
-    if not cli_setup():
-        auto_setup(
-            __file__,
-            logdir=True,
-            devices=[devices]
-        )
     logger.debug('start_game')
     离线5V5(dir_path)
     os.chdir(dir_path)
 
-def single_run(dir_path, device_id, scrcpy_windows_name, flag_file_name, airtest_devices):
+
+def single_run(dir_path, device_id, scrcpy_windows_name, flag_file_name):
     # 防止还没开始就结束了
     if os.path.exists(flag_file_name):
         os.remove(flag_file_name)
 
     # 进入游戏
-    start_game(dir_path, airtest_devices)
+    start_game(dir_path)
 
     # 启动AI打游戏
     th1 = threading.Thread(target=训练数据截取, args=(
@@ -432,7 +416,7 @@ def single_run(dir_path, device_id, scrcpy_windows_name, flag_file_name, airtest
     th1.start()
 
     # 检测游戏是否结束
-    time.sleep(3 * 60)
+    # time.sleep(3 * 60)
     th2 = threading.Thread(target=check_game_status, args=(
         dir_path, scrcpy_windows_name, flag_file_name))
     th2.start()
@@ -440,13 +424,56 @@ def single_run(dir_path, device_id, scrcpy_windows_name, flag_file_name, airtest
     th1.join()
     th2.join()
 
+    return True
+
 
 if __name__ == '__main__':
-    # 获取当前文件绝对路径
-    dir_path = os.path.dirname(os.path.abspath(__file__))
-    # 训练()
+    # import logging
+    # import os
+    # import threading
+    #
+    # from airtest.cli.parser import cli_setup
+    # from airtest.core.api import auto_setup
+    #
+    # from common.airtestProjectsCommon import clean_log
+    #
+    # # 设置日志级别
+    # logger_airtest = logging.getLogger("airtest")
+    # logger_ppocr = logging.getLogger("ppocr")
+    # logger_ppocr.setLevel(logging.ERROR)
+    # logger_airtest.setLevel(logging.ERROR)
+    # # 清空存量日志
+    # clean_log()
+    #
+    # dir_path = os.path.dirname(os.path.abspath(__file__))
+    # device_id = 'emulator-5554'
+    # scrcpy_windows_name = "LIO-AN00"
+    # flag_file_name = 'stop_flag_1.txt'
+    # airtest_devices = "android:///"
+    # # 连接设备
+    # if not cli_setup():
+    #     auto_setup(
+    #         __file__,
+    #         logdir=True,
+    #         devices=[airtest_devices]
+    #     )
+    #
+    #
+    # def scrcpy():
+    #     os.system('scrcpy --max-size 960')
+    #
+    #
+    # th1 = threading.Thread(target=scrcpy)
+    # th1.start()
+    #
+    # res = single_run(dir_path, device_id, scrcpy_windows_name, flag_file_name)
+    # if res is True:
+    #     from pywinauto.application import Application
+    #
+    #     app = Application(backend="uia").connect(title=scrcpy_windows_name)
+    #     main_window = app.window(title_re=scrcpy_windows_name)
+    #     main_window.close()
+
     device_id = 'emulator-5554'
     scrcpy_windows_name = "LIO-AN00"
-    flag_file_name = 'stop_flag_1.txt'
-    airtest_devices = "android://127.0.0.1:5037/emulator-5554"
-    single_run(dir_path, device_id, scrcpy_windows_name, flag_file_name, airtest_devices)
+    训练数据截取(device_id, scrcpy_windows_name, True)
