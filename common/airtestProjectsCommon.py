@@ -9,7 +9,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 from airtest.core.api import *
-# from paddleocr import PaddleOCR
+from paddleocr import PaddleOCR
 
 from common import get_dirs_path
 from common.sparkai_api import get_sparkai_api_answer

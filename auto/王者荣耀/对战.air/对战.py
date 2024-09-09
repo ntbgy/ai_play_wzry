@@ -123,7 +123,7 @@ def 离线5V5(dir_path):
         home()
         sleep(1.0)
         start_app("com.tencent.tmgp.sgame")
-        sleep(20)
+        sleep(30)
         touch(Template(filename='屏幕截图 2024-09-06 082752.png'))
         sleep(2)
     ocr_now_touch('5V5模式', dir_path)

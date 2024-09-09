@@ -13,7 +13,6 @@ import json
 
 态 = '暂停'
 
-
 def cv2ImgAddText(img, text, left, top, textColor=(0, 255, 0), textSize=20):
     if isinstance(img, np.ndarray):  # 判断是否OpenCV图片类型
         img = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
@@ -28,46 +27,22 @@ def cv2ImgAddText(img, text, left, top, textColor=(0, 255, 0), textSize=20):
     # 转换回OpenCV格式
     return cv2.cvtColor(np.asarray(img), cv2.COLOR_RGB2BGR)
 
-
 def get_key_name(key):
     if isinstance(key, keyboard.KeyCode):
-
         return key.char
     else:
 
         return str(key)
-
-
 # 监听按压
 def on_press(key):
     global 态
-
-    key_name = get_key_name(key)
-
-
-# print(key_name)
-# 操作=''
-# if key_name=='w':
-#     W键按下=True
-#
-# elif key_name=='Key.left':
-#     操作='一技能'
-# elif key_name=='Key.down':
-#     操作='二技能'
-# elif key_name=='Key.right':
-#     操作='三技能'
-# elif key_name=='Key.up' :
-#     攻击态=True
-
+    pass
 
 # 监听释放
 def on_release(key):
     global 态
-
     key_name = get_key_name(key)
-
     if key_name == 'Key.up':
-
         态 = '弃'
     elif key_name == 'Key.left':
         态 = '普通'
@@ -83,19 +58,15 @@ def on_release(key):
         态 = '被击杀'
     elif key_name == 'w':
         态 = '被击塔攻击'
-
-    # print("已经释放:", key_name)
     if key == Key.esc:
         # 停止监听
         return False
-
 
 # 开始监听
 # noinspection PyTypeChecker
 def start_listen():
     with Listener(on_press=on_press, on_release=on_release) as listener:
         listener.join()
-
 
 th = threading.Thread(target=start_listen, )
 th.start()
@@ -106,7 +77,7 @@ th.start()
 路径新 = '../判断数据样本/'
 if not os.path.exists(路径新):
     os.makedirs(路径新)
-路径新 = 路径新 + '判断新.json'
+路径新 += '判断新.json'
 全部数据 = {}
 with open(路径json, encoding='ansi') as f:
     while True:
@@ -119,24 +90,17 @@ with open(路径json, encoding='ansi') as f:
         for key in 单元:
             全部数据[key] = 单元[key]
 
-# print(全部数据)
-
 for key in 全部数据:
     记录文件 = open(路径新, 'a+')
-    # print(key + ':' + 全部数据[key])
     图片路径 = '../判断数据样本test/' + key + '.jpg'
     图片新路径 = '../判断数据样本/' + key + '.jpg'
-
-    # 截图 = cv2.imread(图片路径)
     截图 = cv2.imdecode(np.fromfile(图片路径, dtype=np.uint8), -1)
     截图 = cv2ImgAddText(截图, 全部数据[key], 0, 0, (000, 222, 111), 25)
     cv2.imshow('AAA', 截图)
     cv2.waitKey()
-
     while 态 == '暂停':
         time.sleep(0.02)
     新输出 = {}
-
     校准输出 = 全部数据[key]
     if 态 == '过':
         校准输出 = 全部数据[key]
@@ -162,23 +126,5 @@ for key in 全部数据:
     json.dump(新输出, 记录文件, ensure_ascii=False)
     记录文件.write('\n')
     shutil.copy(图片路径, 图片新路径)
-
     态 = '暂停'
     记录文件.close()
-
-# def CV信息显示():
-#     global 全部数据,态
-#
-#
-#
-#
-# CV信息= threading.Thread(target=CV信息显示)
-# CV信息.start()
-# d=666
-# for i in range(555):
-#
-#     while 态=='暂停':
-#      time.sleep(1)
-#      print(d)
-#     态 = '暂停'
-#     d=d+1

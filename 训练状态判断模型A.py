@@ -41,7 +41,6 @@ class 判断状态(nn.Module):
         结果 = self.输出层(中间量)
         return 结果
 
-
 def random_dic(dicts):
     dict_key_ls = list(dicts.keys())
     shuffle(dict_key_ls)
@@ -49,7 +48,6 @@ def random_dic(dicts):
     for key in dict_key_ls:
         new_dic[key] = dicts.get(key)
     return new_dic
-
 
 model_判断状态 = Transformer(6, 768, 2, 12, 0.0, 6 * 6 * 2048).cuda(device)
 optimizer = torch.optim.Adam(model_判断状态.parameters(), lr=6.25e-5, betas=(0.9, 0.98), eps=1e-9)
@@ -63,7 +61,6 @@ with open(路径json, encoding='ansi') as f:
     while True:
         df = f.readline()
         df = df.replace('\'', '\"')
-
         if df == "":
             break
         单元 = json.loads(df)
@@ -72,18 +69,14 @@ with open(路径json, encoding='ansi') as f:
 
 状态 = np.ones((1,), dtype='int64')
 for i in range(100):
-
     打乱顺序 = random_dic(全部数据)
     for key in 打乱顺序:
         状态编号 = 状态辞典[全部数据[key]]
-
         状态[0] = 状态编号
         目标输出 = torch.from_numpy(状态).cuda(device)
-
         图片路径 = '../判断数据样本/' + key + '.jpg'
         img = Image.open(图片路径)
         img2 = np.array(img)
-
         img2 = torch.from_numpy(img2).cuda(device).unsqueeze(0).permute(0, 3, 2, 1).float() / 255
         _, out = resnet101(img2)
         图片张量 = out.reshape(1, 6 * 6 * 2048)
@@ -91,15 +84,12 @@ for i in range(100):
         操作张量 = torch.from_numpy(操作序列.astype(np.int64)).cuda(device)
         src_mask, trg_mask = create_masks(操作张量.unsqueeze(0), 操作张量.unsqueeze(0), device)
         实际输出, _ = model_判断状态(图片张量.unsqueeze(0), 操作张量.unsqueeze(0), trg_mask)
-
         _, 抽样 = torch.topk(实际输出, k=1, dim=-1)
         抽样np = 抽样.cpu().numpy()
-
         optimizer.zero_grad()
         实际输出 = 实际输出.view(-1, 实际输出.size(-1))
         loss = F.cross_entropy(实际输出, 目标输出.contiguous().view(-1), ignore_index=-1)
         print('轮', i, '实际输出', 状态列表[抽样np[0, 0, 0, 0]], '目标输出', 全部数据[key], loss)
         loss.backward()
-
         optimizer.step()
     torch.save(model_判断状态.state_dict(), 'E:/weights/model_weights_判断状态L')
