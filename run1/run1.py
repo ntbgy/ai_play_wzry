@@ -5,8 +5,8 @@ import threading
 from airtest.cli.parser import cli_setup
 from airtest.core.api import auto_setup
 
+from B1训练数据截取 import single_run
 from common.airtestProjectsCommon import clean_log
-from 训练数据截取 import single_run
 
 # 设置日志级别
 logger_airtest = logging.getLogger("airtest")

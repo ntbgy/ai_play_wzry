@@ -1,4 +1,5 @@
 import math
+import os.path
 
 import numpy as np
 import torch
@@ -10,6 +11,7 @@ from PIL import Image
 import json
 from Batch import create_masks
 from Sublayers import 全连接层
+from common.env import 状态词典B, 判断状态模型地址
 from resnet_utils import myResnet
 from 模型_策略梯度 import Transformer
 
@@ -51,13 +53,12 @@ def random_dic(dicts):
 
 model_判断状态 = Transformer(6, 768, 2, 12, 0.0, 6 * 6 * 2048).cuda(device)
 optimizer = torch.optim.Adam(model_判断状态.parameters(), lr=6.25e-5, betas=(0.9, 0.98), eps=1e-9)
-路径json = '../判断数据样本/判断新.json'
+路径json = r'E:\ai-play-wzry\判断数据样本\判断新.json'
 全部数据 = {}
-状态辞典 = {'击杀小兵或野怪或推掉塔': 0, '击杀敌方英雄': 1, '被击塔攻击': 2, '被击杀': 3, '死亡': 4, '普通': 5}
 状态列表 = []
-for K in 状态辞典:
+for K in 状态词典B:
     状态列表.append(K)
-with open(路径json, encoding='ansi') as f:
+with open(路径json, encoding='utf-8') as f:
     while True:
         df = f.readline()
         df = df.replace('\'', '\"')
@@ -71,11 +72,15 @@ with open(路径json, encoding='ansi') as f:
 for i in range(100):
     打乱顺序 = random_dic(全部数据)
     for key in 打乱顺序:
-        状态编号 = 状态辞典[全部数据[key]]
+        状态编号 = 状态词典B[全部数据[key]]
         状态[0] = 状态编号
         目标输出 = torch.from_numpy(状态).cuda(device)
-        图片路径 = '../判断数据样本/' + key + '.jpg'
-        img = Image.open(图片路径)
+        图片路径 = r'E:\ai-play-wzry\判断数据样本\\' + key + '.jpg'
+        if os.path.isfile(图片路径):
+            img = Image.open(图片路径)
+        else:
+            img = Image.open(
+                r'E:\ai-play-wzry\训练数据样本\未用\\' + key.split('_')[0] + '\\' + key.split('_')[1] + '.jpg')
         img2 = np.array(img)
         img2 = torch.from_numpy(img2).cuda(device).unsqueeze(0).permute(0, 3, 2, 1).float() / 255
         _, out = resnet101(img2)
@@ -89,7 +94,10 @@ for i in range(100):
         optimizer.zero_grad()
         实际输出 = 实际输出.view(-1, 实际输出.size(-1))
         loss = F.cross_entropy(实际输出, 目标输出.contiguous().view(-1), ignore_index=-1)
-        print('轮', i, '实际输出', 状态列表[抽样np[0, 0, 0, 0]], '目标输出', 全部数据[key], loss)
         loss.backward()
         optimizer.step()
-    torch.save(model_判断状态.state_dict(), 'E:/weights/model_weights_判断状态L')
+        print('轮', i + 1, '实际输出', 状态列表[抽样np[0, 0, 0, 0]], '目标输出', 全部数据[key], loss)
+        if (i + 1) % 25 == 0:
+            torch.save(model_判断状态.state_dict(),
+                       f"E:/ai-play-wzry/weights/temp/model_weights_judgment_state_{i + 1}.pth")
+    torch.save(model_判断状态.state_dict(), 判断状态模型地址)

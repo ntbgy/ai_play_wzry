@@ -140,7 +140,7 @@ def 离线5V5(dir_path):
     ocr_now_touch('确定', dir_path)
     sleep(1)
     ocr_now_touch('确定', dir_path)
-    sleep(5)
+    sleep(1)
     print('开始离线5V5')
 
 

@@ -69,6 +69,7 @@ def start_listen():
         listener.join()
 
 th = threading.Thread(target=start_listen, )
+th.daemon = True
 th.start()
 
 # 筛选事件特征图片
@@ -83,7 +84,6 @@ with open(路径json, encoding='ansi') as f:
     while True:
         df = f.readline()
         df = df.replace('\'', '\"')
-
         if df == "":
             break
         单元 = json.loads(df)

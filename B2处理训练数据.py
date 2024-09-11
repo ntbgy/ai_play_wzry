@@ -8,7 +8,7 @@ from PIL import Image
 import json
 from resnet_utils import myResnet
 
-操作记录 = 'E:/训练数据样本/未用'
+操作记录 = 'E:/ai-play-wzry/训练数据样本/未用'
 if not os.path.exists(操作记录):
     os.makedirs(操作记录)
 
@@ -41,7 +41,7 @@ for 号 in dirnames:
     计数 = 0
     print('正在处理{}'.format(号))
     数据列 = []
-    with open(路径json, encoding='ansi') as f:
+    with open(路径json, encoding='utf-8') as f:
         移动操作 = '无移动'
         while True:
             df = f.readline()
@@ -56,7 +56,7 @@ for 号 in dirnames:
                 break
             数据列.append(df)
 
-    with open(路径json, encoding='ansi') as f:
+    with open(路径json, encoding='utf-8') as f:
         移动操作 = '无移动'
         for i in range(len(数据列)):
             df = 数据列[i]

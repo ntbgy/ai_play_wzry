@@ -272,10 +272,11 @@ class 智能体:
     def 保存模型(self, 轮号):
         print(f'... 保存模型 {轮号}...')
         from common.env import 保存模型名称
-        torch.save(self.动作.state_dict(), f'E:/weights/{保存模型名称}')
-        if not os.path.isdir(f'E:/weights/temp'):
-            os.makedirs(f'E:/weights/temp')
-        torch.save(self.动作.state_dict(), f'E:/weights/temp/{保存模型名称.replace(".pth", "")}_{轮号}.pth')
+        torch.save(self.动作.state_dict(), f'E:/ai-play-wzry/weights/{保存模型名称}')
+        if not os.path.isdir(f'E:/ai-play-wzry/weights/temp'):
+            os.makedirs(f'E:/ai-play-wzry/weights/temp')
+        torch.save(self.动作.state_dict(),
+                   f'E:/ai-play-wzry/weights/temp/{保存模型名称.replace(".pth", "")}_{轮号}.pth')
 
     def 载入模型(self):
         print('... 载入模型 ...')

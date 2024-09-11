@@ -8,7 +8,6 @@ echo %QT_QPA_PLATFORM_PLUGIN_PATH%
 import os
 import random
 import sys
-import threading
 import time
 
 import numpy as np
@@ -36,7 +35,7 @@ device = torch.device("cuda:0" if (torch.cuda.is_available()) else "cpu")
 mod = torchvision.models.resnet101(pretrained=True).eval().cuda(device).requires_grad_(False)
 resnet101 = myResnet(mod)
 model_判断状态 = Transformer(6, 768, 2, 12, 0.0, 6 * 6 * 2048)
-model_判断状态.load_state_dict(torch.load('E:/weights/model_weights_判断状态L'))
+model_判断状态.load_state_dict(torch.load('E:/ai-play-wzry/weights/model_weights_judgment_state.pth'))
 model_判断状态.cuda(device)
 N = 15000  # 运行N次后学习
 条数 = 100
@@ -62,12 +61,6 @@ screen = app.primaryScreen()
 
 训练数据保存目录 = '../训练数据2'
 计时开始 = 0
-
-加三技能 = 'd 0 552 1878 100\nc\nu 0\nc\n'
-加二技能 = 'd 0 446 1687 100\nc\nu 0\nc\n'
-加一技能 = 'd 0 241 1559 100\nc\nu 0\nc\n'
-购买 = 'd 0 651 207 100\nc\nu 0\nc\n'
-
 词数词典路径 = "./json/词_数表.json"
 数_词表路径 = "./json/数_词表.json"
 操作查询路径 = "./json/名称_操作.json"
@@ -158,8 +151,10 @@ def on_press(key):
 def start_listen():
     with Listener(on_press=on_press, on_release=on_release) as listener:
         listener.join()
-th = threading.Thread(target=start_listen, )
-th.start()
+
+
+# th = threading.Thread(target=start_listen, )
+# th.start()
 判断数据保存目录 = '../判断数据样本test'
 if not os.path.exists(判断数据保存目录):
     os.makedirs(判断数据保存目录)
@@ -202,10 +197,10 @@ for i in range(6666666):
         局内计数 = 0
         动作, 动作可能性, 评价 = 智能体.选择动作(状态, device, 0)
         if 计数 % 50 == 0 and 计数 != 0:
-            设备.发送(购买)
-            设备.发送(加三技能)
-            设备.发送(加二技能)
-            设备.发送(加一技能)
+            设备.发送(操作查询词典['购买'])
+            设备.发送(操作查询词典['加一技能'])
+            设备.发送(操作查询词典['加二技能'])
+            设备.发送(操作查询词典['加三技能'])
             设备.发送(操作查询词典['移动停'])
             print(旧指令, '周期')
             time.sleep(0.02)
@@ -267,7 +262,6 @@ for i in range(6666666):
         状态['图片张量'] = 状态['图片张量'][:, -1:, :]
         状态['操作序列'] = 状态['操作序列'][-1:]
         状态['trg_mask'] = 0
-        # 智能体.记录数据(状态, 动作, 动作可能性, 评价, 得分, 完结,计数)
         用时1 = 0.22 - (time.time() - 计时开始)
         if 用时1 > 0:
             time.sleep(用时1)
@@ -276,13 +270,9 @@ for i in range(6666666):
             print(用时1)
         if 继续 is False:
             print('学习中。。。。。。。。。。。。。。。。')
-            # 智能体.学习(device)
             print('分数', 1)
-            # 智能体.保存模型(学习次数)
             分数记录 = []
             速度记录 = []
             print('学习完毕。。。。。。。。。。。。。。。。')
-            # 智能体.存硬盘('PPO训练数据/'+str(int(time.time())))
-            # 智能体.保存模型(学习次数)
     time.sleep(1)
     print('继续', 继续)

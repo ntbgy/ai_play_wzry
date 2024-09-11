@@ -1,15 +1,15 @@
 import sys
 import threading
-from pathlib import Path
 
 import torchvision
 from airtest.core.api import *
 from pynput import keyboard
 from pynput.keyboard import Key, Listener
+from pywinauto import Application
 
 from Batch import create_masks
 from common.airtestProjectsCommon import get_img_txt
-from common.env import training_data_save_directory, project_root_path
+from common.env import training_data_save_directory, project_root_path, 状态词典, 状态词典B, 操作查询词典
 from common.my_logger import logger
 from resnet_utils import myResnet
 from 取训练数据 import *
@@ -22,6 +22,7 @@ from 运行辅助 import *
 # 当一个线程获取了锁（通过lock.acquire()方法）后，其他线程在尝试获取该锁时将被阻塞，直到锁被释放（通过lock.release()方法）。
 lock = threading.Lock()
 # 全局变量初始化
+AI打开 = True
 W键按下 = False
 S键按下 = False
 A键按下 = False
@@ -37,6 +38,30 @@ Q键按下 = False
 )
 
 
+class stop:
+    """
+    存储检测游戏是否结束需要的变量
+    """
+
+    def __init__(self):
+        self.stop = False
+        self.image_path = None
+
+    def get_stop(self):
+        return self.stop
+
+    def set_stop(self, stop=False):
+        self.stop = stop
+
+    def get_image_path(self):
+        return self.image_path
+
+    def set_image_path(self, image_path=None):
+        self.image_path = image_path
+
+
+sp = stop()
+
 def get_key_name(key) -> str:
     """从pynput.keyboard模块中的按键对象中提取出一个可识别的键名"""
     if isinstance(key, keyboard.KeyCode):
@@ -47,8 +72,7 @@ def get_key_name(key) -> str:
 
 # 监听按压
 def on_press(key):
-    global W键按下, S键按下, A键按下, D键按下, \
-        操作列, Q键按下
+    global W键按下, S键按下, A键按下, D键按下, 操作列, Q键按下
     # 哎，.lower() 这里给自己坑死了
     key_name = get_key_name(key).lower()
     manual_manipulation = ''
@@ -63,8 +87,6 @@ def on_press(key):
         D键按下 = True
     elif key_name == 'q':
         Q键按下 = True
-    # elif key_name == 'i':
-    #     AI打开 = bool(1 - AI打开)
     elif key_name == 'j':
         manual_manipulation = '一技能'
     elif key_name == 'k':
@@ -84,10 +106,8 @@ def on_press(key):
     elif key_name == 'key.right':
         manual_manipulation = '三技能'
     elif key_name == 'key.space':
-        # 待定
-        pass
+        manual_manipulation = '召唤师技能'
     elif key_name == 'key.up':
-        # 暂定攻击
         manual_manipulation = '攻击'
     elif key_name == 'key.delete':
         manual_manipulation = '补刀'
@@ -95,9 +115,9 @@ def on_press(key):
         manual_manipulation = '攻击'
     elif key_name == 'key.page_down':
         manual_manipulation = '推塔'
-
     if manual_manipulation in ('回城', '恢复'):
-        操作列.insert(0, manual_manipulation)
+        操作列.clear()
+        操作列.append(manual_manipulation)
     elif manual_manipulation != '':
         操作列.append(manual_manipulation)
     lock.release()
@@ -105,11 +125,10 @@ def on_press(key):
 
 # 监听释放
 def on_release(key):
-    global W键按下, S键按下, A键按下, D键按下, \
-        Q键按下
+    global W键按下, S键按下, A键按下, D键按下, Q键按下
     key_name = get_key_name(key)
     if key == Key.esc:
-        logger.info('停止监听')
+        logger.warning('停止监听')
         return False
     if key_name == 'w':
         W键按下 = False
@@ -121,6 +140,8 @@ def on_release(key):
         D键按下 = False
     elif key_name == 'q':
         Q键按下 = False
+    elif key_name=='Key.up' :
+        攻击态=False
 
 
 # 开始监听
@@ -133,46 +154,87 @@ def start_listen():
 def 处理方向():
     if Q键按下 is True:
         return '移动停'
-    elif W键按下 == True and S键按下 == False and A键按下 == False and D键按下 == False:
+    elif W键按下 is True and S键按下 is False and A键按下 is False and D键按下 is False:
         return '上移'
-    elif W键按下 == False and S键按下 == True and A键按下 == False and D键按下 == False:
+    elif W键按下 is False and S键按下 is True and A键按下 is False and D键按下 is False:
         return '下移'
-    elif W键按下 == False and S键按下 == False and A键按下 == True and D键按下 == False:
+    elif W键按下 is False and S键按下 is False and A键按下 is True and D键按下 is False:
         return '左移'
-    elif W键按下 == False and S键按下 == False and A键按下 == False and D键按下 == True:
+    elif W键按下 is False and S键按下 is False and A键按下 is False and D键按下 is True:
         return '右移'
-    elif W键按下 == True and S键按下 == False and A键按下 == True and D键按下 == False:
+    elif W键按下 is True and S键按下 is False and A键按下 is True and D键按下 is False:
         return '左上移'
-    elif W键按下 == True and S键按下 == False and A键按下 == False and D键按下 == True:
+    elif W键按下 is True and S键按下 is False and A键按下 is False and D键按下 is True:
         return '右上移'
-    elif W键按下 == False and S键按下 == True and A键按下 == True and D键按下 == False:
+    elif W键按下 is False and S键按下 is True and A键按下 is True and D键按下 is False:
         return '左下移'
-    elif W键按下 == False and S键按下 == True and A键按下 == False and D键按下 == True:
+    elif W键按下 is False and S键按下 is True and A键按下 is False and D键按下 is True:
         return '右下移'
     else:
         return ''
 
 
+def 判断状态(device, resnet101, image_path):
+    from 模型_策略梯度 import Transformer
+    model_判断状态 = Transformer(6, 768, 2, 12, 0.0, 6 * 6 * 2048)
+    model_判断状态.load_state_dict(torch.load('E:/ai-play-wzry/weights/model_weights_judgment_state.pth'))
+    model_判断状态.cuda(device)
+    image = Image.open(image_path)
+    图片数组 = np.asarray(image)
+    截屏 = torch.from_numpy(图片数组).cuda(device).unsqueeze(0).permute(0, 3, 2, 1) / 255
+    _, out = resnet101(截屏)
+    out = torch.reshape(out, (1, 6 * 6 * 2048))
+    操作序列A = np.ones((1, 1))
+    操作张量A = torch.from_numpy(操作序列A.astype(np.int64)).cuda(device)
+    src_mask, trg_mask = create_masks(操作张量A.unsqueeze(0), 操作张量A.unsqueeze(0), device)
+    outA = out.detach()
+    实际输出, _ = model_判断状态(outA.unsqueeze(0), 操作张量A.unsqueeze(0), trg_mask)
+    _, 抽样 = torch.topk(实际输出, k=1, dim=-1)
+    抽样np = 抽样.cpu().numpy()
+    状态列表 = []
+    for K in 状态词典B:
+        状态列表.append(K)
+    状况 = 状态列表[抽样np[0, 0, 0, 0]]
+    得分 = 状态词典[状况]
+    logger.debug(f'image_path: {image_path}，判断状态：{状况}，得分：{得分}')
+    return 状况, 得分
+
+
+def 追加记录(file_path, data):
+    with open(file_path, 'a', encoding='utf-8') as f:
+        f.write(json.dumps(data, ensure_ascii=False))
+        f.write('\n')
+def 发送指令(pyminitouch_device, 指令):
+    global AI打开
+    try:
+        pyminitouch_device.发送(操作查询词典[指令])
+        return True
+    except:
+        AI打开 = False
+        logger.error('发送失败')
+        return False
+
+
 def 训练数据截取(device_id, scrcpy_windows_name, 手工介入=True, flag_file_name='stop_flag.txt'):
-    手动模式 = False
+    global 操作列, sp, AI打开
+    # 防止还没开始就结束了
+    if os.path.exists(flag_file_name):
+        os.remove(flag_file_name)
     AI打开 = True
     自动 = 0
-    global 操作列
     if 手工介入 is True:
         th = threading.Thread(target=start_listen, )
+        th.daemon = True
         th.start()  # 启动线程
     词数词典路径 = f"{project_root_path}/json/词_数表.json"
     数_词表路径 = f"{project_root_path}/json/数_词表.json"
-    操作查询路径 = f"{project_root_path}/json/名称_操作.json"
     操作词典 = {"图片号": "0", "移动操作": "无移动", "动作操作": "无动作"}
     if os.path.isfile(词数词典路径) and os.path.isfile(数_词表路径):
         词_数表, 数_词表 = 读出引索(词数词典路径, 数_词表路径)
     else:
         raise ValueError("词_数表, 数_词表 获取失败！")
-    with open(词数词典路径, encoding='utf8') as f:
-        词数词典 = json.load(f)
-    with open(操作查询路径, encoding='utf8') as f:
-        操作查询词典 = json.load(f)
+    # with open(词数词典路径, encoding='utf8') as f:
+    #     词数词典 = json.load(f)
     pyminitouch_device = MyMNTDevice(device_id)
     # 加载预训练的 ResNet - 101 模型
     # 模型设置为评估模式
@@ -181,32 +243,29 @@ def 训练数据截取(device_id, scrcpy_windows_name, 手工介入=True, flag_f
     device = torch.device("cuda:0" if (torch.cuda.is_available()) else "cpu")
     mod = torchvision.models.resnet101(pretrained=True).eval().cuda(device).requires_grad_(False)
     resnet101 = myResnet(mod)
+
     try:
         while True:
             图片路径 = training_data_save_directory + '/{}/'.format(str(int(time.time())))
             os.mkdir(图片路径)
-            记录文件 = open(图片路径 + '_操作数据.json', 'w+')
+            记录文件路径 = 图片路径 + '_操作数据.json'
+            with open(记录文件路径, 'w', encoding='utf-8') as f:
+                f.write('')
             图片张量 = torch.Tensor(0)
-            操作张量 = torch.Tensor(0)
-            伪词序列 = torch.from_numpy(np.ones((1, 60)).astype(np.int64)).cuda(device).unsqueeze(0)
-            指令延时 = 0
             操作序列 = np.ones((1,))
             操作序列[0] = 128
             计数 = 0
-            time_start = time.time()
-            旧指令 = '移动停'
-            for i in range(100 * 1000):
-                # 检查标记文件
-                if os.path.exists(flag_file_name):
-                    break
+            旧移动指令 = '移动停'
+            for i in range(10 * 1000):
                 if AI打开 is False:
                     break
                 try:
                     imgA = get_window_image(scrcpy_windows_name)
                 except:
                     AI打开 = False
-                    logger.info('取图失败！')
+                    logger.error('取图失败！')
                     break
+
                 计时开始 = time.time()
                 if 图片张量.shape[0] == 0:
                     img = np.array(imgA)
@@ -233,21 +292,19 @@ def 训练数据截取(device_id, scrcpy_windows_name, 手工介入=True, flag_f
                 src_mask, trg_mask = create_masks(操作张量.unsqueeze(0), 操作张量.unsqueeze(0), device)
 
                 状态 = 状态信息综合(图片张量.cpu().numpy(), 操作序列, trg_mask)
-
                 动作, 动作可能性, 评价 = 智能体.选择动作(状态, device, 1, False)
-                LI = 操作张量.contiguous().view(-1)
                 if 计数 % 50 == 0 and 计数 != 0:
                     pyminitouch_device.发送(操作查询词典['购买'])
+                    time.sleep(0.01)
                     pyminitouch_device.发送(操作查询词典['加一技能'])
+                    time.sleep(0.01)
                     pyminitouch_device.发送(操作查询词典['加二技能'])
+                    time.sleep(0.01)
                     pyminitouch_device.发送(操作查询词典['加三技能'])
-                    pyminitouch_device.发送(操作查询词典['移动停'])
-                    time.sleep(0.02)
-                    logger.info((旧指令, '周期'))
-                    pyminitouch_device.发送(操作查询词典[旧指令])
+                    time.sleep(0.01)
+                    pyminitouch_device.发送(操作查询词典[旧移动指令])
                 路径_a = 图片路径 + '{}.jpg'.format(str(i))
                 if 计数 % 1 == 0:
-                    time_end = time.time()
                     指令 = 数_词表[str(动作)]
                     指令集 = 指令.split('_')
                     操作词典['图片号'] = str(i)
@@ -265,57 +322,52 @@ def 训练数据截取(device_id, scrcpy_windows_name, 手工介入=True, flag_f
                         else:
                             操作词典['动作操作'] = '无动作'
                         imgA.save(路径_a)
+                        sp.set_image_path(路径_a)
                         if 自动 == 0:
                             操作词典['结束'] = 1
                         else:
                             操作词典['结束'] = 0
                         自动 = 1
-                        json.dump(操作词典, 记录文件, ensure_ascii=False)
-                        记录文件.write('\n')
-                        新指令 = 操作词典['移动操作']
-                        if 新指令 != 旧指令 and 新指令 != '无移动':
-                            旧指令 = 新指令
-                            try:
-                                logger.info(('手动模式', 旧指令))
-                                pyminitouch_device.发送(操作查询词典[旧指令])
-                            except:
-                                AI打开 = False
-                                logger.info('发送失败')
+                        追加记录(记录文件路径, 操作词典)
+                        新移动指令 = 操作词典['移动操作']
+                        新动作指令 = 操作词典['动作操作']
+                        if 新移动指令 != 旧移动指令 and 新移动指令 != '无移动':
+                            logger.info(f"移动操作，手动模式，{旧移动指令} -> {新移动指令}")
+                            指令集[0] = 新移动指令
+                            logger.debug(指令集)
+                            if not 发送指令(pyminitouch_device, 新移动指令):
                                 break
                             time.sleep(0.01)
-                        if (操作词典['动作操作'] != '无动作'
-                                and 操作词典['动作操作'] != '发起集合'
-                                and 操作词典['动作操作'] != '发起进攻'
-                                and 操作词典['动作操作'] != '发起撤退'):
+                        if (新动作指令 != '无动作'
+                                and 新动作指令 != '发起集合'
+                                and 新动作指令 != '发起进攻'
+                                and 新动作指令 != '发起撤退'):
+                            logger.info(f"动作操作，手动模式，{指令集[1]} -> {新动作指令}")
+                            指令集[1] = 新动作指令
                             logger.debug(指令集)
-                            logger.info(('手动', 指令集[1]))
-                            try:
-                                pyminitouch_device.发送(操作查询词典[操作词典['动作操作']])
-                            except:
-                                AI打开 = False
-                                logger.info('发送失败')
+                            if not 发送指令(pyminitouch_device, 新动作指令):
                                 break
+                            time.sleep(0.01)
                     else:
                         操作列 = []
                         操作词典['移动操作'] = 指令集[0]
                         操作词典['动作操作'] = 指令集[1]
-                        新指令 = 指令集[0]
-                        if 新指令 != 旧指令 and 新指令 != '无移动':
-                            旧指令 = 新指令
+                        新移动指令 = 指令集[0]
+                        if 新移动指令 != 旧移动指令 and 新移动指令 != '无移动':
+                            旧移动指令 = 新移动指令
                             try:
-                                logger.info(旧指令)
-                                pyminitouch_device.发送(操作查询词典[旧指令])
+                                logger.info(旧移动指令)
+                                pyminitouch_device.发送(操作查询词典[旧移动指令])
                             except:
                                 AI打开 = False
-                                logger.info('发送失败')
+                                logger.error('发送失败')
                                 break
                             time.sleep(0.01)
                         imgA.save(路径_a)
+                        sp.set_image_path(路径_a)
                         自动 = 0
                         操作词典['结束'] = 0
-                        json.dump(操作词典, 记录文件, ensure_ascii=False)
-                        记录文件.write('\n')
-                        新指令 = 操作词典['移动操作']
+                        追加记录(记录文件路径, 操作词典)
                         if 指令集[1] != '无动作' and 指令集[1] != '发起集合' and 指令集[1] != '发起进攻' and 指令集[
                             1] != '发起撤退':
                             logger.info(指令集[1])
@@ -323,68 +375,67 @@ def 训练数据截取(device_id, scrcpy_windows_name, 手工介入=True, flag_f
                                 pyminitouch_device.发送(操作查询词典[指令集[1]])
                             except:
                                 AI打开 = False
-                                logger.info('发送失败')
+                                logger.error('发送失败')
                                 break
                     用时1 = 0.22 - (time.time() - 计时开始)
                     if 用时1 > 0:
                         time.sleep(用时1)
-                    用时 = time_end - time_start
-                    计数 = 计数 + 1
-            记录文件.close()
+                    计数 += 1
+                """
+                t1 = threading.Thread(target=判断状态, args=(device, resnet101, 路径_a))
+                t1.start()
+                """
+                if (sp.get_stop() is True
+                        or os.path.exists(flag_file_name)):
+                    pyminitouch_device.stop()
+                    break
+
             time.sleep(1)
             # 检查标记文件
             if os.path.exists(flag_file_name):
-                pyminitouch_device.stop()
                 os.remove(flag_file_name)
                 logger.debug("删除标记文件")
                 break
-            if AI打开 is False:
+            elif sp.get_stop() is True:
+                break
+            elif AI打开 is False:
+                logger.info(('AI打开', AI打开))
                 continue
-            logger.info(('AI打开', AI打开))
     except KeyboardInterrupt:
         logger.warning("用户中断了程序的运行")
         pyminitouch_device.stop()
-        try:
-            # noinspection PyUnboundLocalVariable
-            记录文件.close()
-        except NameError as e:
-            logger.warning(e)
-        time.sleep(0.5)
 
 
 # 检测游戏是否结束
-def check_game_status(dir_path, scrcpy_windows_name, flag_file_name='stop_flag.txt'):
+def check_game_status(flag_file_name):
+    global sp
+    time.sleep(6 * 60)
     logger_ppocr = logging.getLogger("ppocr")
     logger_ppocr.setLevel(logging.ERROR)
-    game_running = True
-    while game_running:
-        image = get_window_image(scrcpy_windows_name)
-        image_name = 'window_screenshot.png'
-        image.save(image_name)
-        txt = get_img_txt(str(
-            Path(dir_path) / Path(image_name)))
+    while True:
+        if os.path.exists(flag_file_name):
+            return
+        image_path = sp.get_image_path()
+        if image_path is None:
+            continue
+        txt = get_img_txt(image_path)
         if ('返回大厅' in txt
                 or '再来一局' in txt
                 or '继续' in txt
                 or '胜利' in txt
                 or '失败' in txt
+                or '请选择' in txt
         ):
-            game_running = False
             logger.info("检测到游戏结束")
-            logger.debug('创建标记文件')
-            with open(flag_file_name, 'w') as f:
-                f.write('stop')
-            os.remove(image_name)
+            sp.set_stop(True)
+            break
+        time.sleep(60)
 
-
-def 训练():
-    os.system(
-        r'C:\Users\ntbgy\.conda\envs\wzry38\python.exe C:\Users\ntbgy\PycharmProjects\ai-play-wzry\02处理训练数据.py')
-    time.sleep(5)
-    os.system(
-        r'C:\Users\ntbgy\.conda\envs\wzry38\python.exe C:\Users\ntbgy\PycharmProjects\ai-play-wzry\03训练主模型.py')
-    logger.info('done')
-
+def scrcpy(s='--max-size 960 --always-on-top'):
+    """
+    启动scrcpy
+    """
+    os.system(f'scrcpy {s}')
 
 # 启动游戏
 # noinspection PyUnresolvedReferences
@@ -403,29 +454,27 @@ def start_game(dir_path):
 
 
 def single_run(dir_path, device_id, scrcpy_windows_name, flag_file_name):
-    # 防止还没开始就结束了
-    if os.path.exists(flag_file_name):
-        os.remove(flag_file_name)
-
+    """
+    运行单局游戏
+    """
     # 进入游戏
     start_game(dir_path)
-
-    # 启动AI打游戏
-    th1 = threading.Thread(target=训练数据截取, args=(
-        device_id, scrcpy_windows_name, False, flag_file_name))
+    # 打开scrcpy
+    th1 = threading.Thread(target=scrcpy)
+    # 将线程设置为守护线程（daemon = True），当主线程结束时，守护线程会自动退出。
+    th1.daemon = True
     th1.start()
-
-    # 检测游戏是否结束
-    # time.sleep(3 * 60)
-    th2 = threading.Thread(target=check_game_status, args=(
-        dir_path, scrcpy_windows_name, flag_file_name))
+    # AI打游戏
+    th2 = threading.Thread(target=训练数据截取, args=(device_id, scrcpy_windows_name, True, flag_file_name))
     th2.start()
-
-    th1.join()
+    # 检测游戏是否结束，不停检测会卡死，emmmm
+    th3 = threading.Thread(target=check_game_status, args=(flag_file_name,))
+    th3.start()
     th2.join()
-
-    return True
-
+    th3.join()
+    app = Application(backend="uia").connect(title=scrcpy_windows_name)
+    main_window = app.window(title_re=scrcpy_windows_name)
+    main_window.close()
 
 if __name__ == '__main__':
     import logging
@@ -448,7 +497,7 @@ if __name__ == '__main__':
     dir_path = os.path.dirname(os.path.abspath(__file__))
     device_id = 'emulator-5554'
     scrcpy_windows_name = "LIO-AN00"
-    flag_file_name = 'stop_flag_1.txt'
+    flag_file_name = 'stop_flag.txt'
     airtest_devices = "android:///"
     # 连接设备
     if not cli_setup():
@@ -457,22 +506,5 @@ if __name__ == '__main__':
             logdir=True,
             devices=[airtest_devices]
         )
-
-
-    def scrcpy():
-        """
-        启动scrcpy
-        """
-        os.system('scrcpy --max-size 960')
-
-
-    th1 = threading.Thread(target=scrcpy)
-    th1.start()
-
-    res = single_run(dir_path, device_id, scrcpy_windows_name, flag_file_name)
-    if res is True:
-        from pywinauto.application import Application
-
-        app = Application(backend="uia").connect(title=scrcpy_windows_name)
-        main_window = app.window(title_re=scrcpy_windows_name)
-        main_window.close()
+    # 训练数据截取(device_id, scrcpy_windows_name, True, flag_file_name)
+    single_run(dir_path, device_id, scrcpy_windows_name, flag_file_name)

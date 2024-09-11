@@ -2,36 +2,19 @@ import os
 import time
 
 from Batch import create_masks
+from common.env import 状态词典, 状态词典B
 from config import TransformerConfig
 from 取训练数据 import *
 from 杂项 import *
 from 模型_策略梯度 import Transformer
 from 模型_策略梯度 import 智能体
 
-状态辞典 = {
-    "击杀小兵或野怪或推掉塔": 2,
-    "击杀敌方英雄": 3,
-    "被击塔攻击": -0.35,
-    "被击杀": -1,
-    "无状况": 0.01,
-    "死亡": -0.05,
-    "其它": 0.01,
-    "普通": 0.01
-}
-状态辞典B = {
-    "击杀小兵或野怪或推掉塔": 0,
-    "击杀敌方英雄": 1,
-    "被击塔攻击": 2,
-    "被击杀": 3,
-    "死亡": 4,
-    "普通": 5
-}
-状态列表 = [K for K in 状态辞典B]
-训练数据保存目录 = 'E:/训练数据样本/未用'
+状态列表 = [K for K in 状态词典B]
+训练数据保存目录 = 'E:/ai-play-wzry/训练数据样本/未用'
 if not os.path.exists(训练数据保存目录):
     os.makedirs(训练数据保存目录)
 dirs = list()
-for root, dirs, files in os.walk('E:/训练数据样本/未用'):
+for root, dirs, files in os.walk('E:/ai-play-wzry/训练数据样本/未用'):
     if len(dirs) > 0:
         break
 词数词典路径 = "./json/词_数表.json"
@@ -43,7 +26,7 @@ with open(词数词典路径, encoding='utf8') as f:
 device = torch.device("cuda:0" if (torch.cuda.is_available()) else "cpu")
 config = TransformerConfig()
 model_判断状态 = Transformer(6, 768, 2, 12, 0.0, 6 * 6 * 2048)
-model_判断状态.load_state_dict(torch.load('E:/weights/model_weights_判断状态L'))
+model_判断状态.load_state_dict(torch.load('E:/ai-play-wzry/weights/model_weights_judgment_state.pth'))
 model_判断状态.cuda(device).requires_grad_(False)
 N = 15000  # 运行N次后学习
 条数 = 100
@@ -82,7 +65,7 @@ for j in range(100):
                     操作_分_表.append(操作_分)
                     目标输出_分_表.append(目标输出_分)
                     图片_分_表.append(图片_分)
-                    游标 = 游标 + 游标大小
+                    游标 += 游标大小
                 else:
                     操作_分 = 操作序列[-分块大小 - 1:-1]
                     目标输出_分 = 操作序列[-分块大小:]
@@ -120,7 +103,7 @@ for j in range(100):
                 回报 = 回报.astype(np.float32)
                 for 计数 in range(抽样np.shape[1]):
                     状况 = 状态列表[抽样np[0, 计数, 0]]
-                    得分 = 状态辞典[状况]
+                    得分 = 状态词典[状况]
                     回报[计数] = 得分
                 智能体.监督强化学习(device, 状态, 回报, 动作, 动作可能性, 评价)
                 print(device, 状态, 回报, 动作, 动作可能性, 评价)
@@ -128,8 +111,8 @@ for j in range(100):
                     time_end = time.time()
                     用时 = time_end - time_start
                     print(用时)
-                计数 = 计数 + 1
-                i = i + 1
+                计数 += 1
+                i += 1
     if j != 0 and (j + 1) % 25 == 0:
         # 频繁保存太慢了
         智能体.保存模型(j + 1)

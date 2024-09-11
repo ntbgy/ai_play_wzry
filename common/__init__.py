@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-# from paddleocr import PaddleOCR
+from paddleocr import PaddleOCR
 
 
 def get_dirs_path(dir_path):
