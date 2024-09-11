@@ -37,3 +37,4 @@ training_data_save_directory = 'E:/ai-play-wzry/训练数据样本/未用'
 操作查询路径 = f"{project_root_path}/json/名称_操作.json"
 with open(操作查询路径, encoding='utf8') as f:
     操作查询词典 = json.load(f)
+操作词典 = {"图片号": "0", "移动操作": "无移动", "动作操作": "无动作"}

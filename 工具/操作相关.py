@@ -56,13 +56,16 @@ def 操作测试2():
 
     print("max x:", device.connection.max_x)
     print("max y:", device.connection.max_y)
-    for _ in range(1):
-        for key, value in data.items():
-            print(key)
-            time.sleep(2)
-            device.发送(value)
-            time.sleep(3)
-    device.stop()
+
+
+
+    # for _ in range(1):
+    #     for key, value in data.items():
+    #         print(key)
+    #         time.sleep(2)
+    #         device.发送(value)
+    #         time.sleep(3)
+    # device.stop()
 
 
 def 移动测试():
