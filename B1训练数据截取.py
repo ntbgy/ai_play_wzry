@@ -8,17 +8,16 @@ from pynput import keyboard
 from pynput.keyboard import Key, Listener
 from pywinauto import Application
 
-from Batch import create_masks
+import json
+from common import *
+from common.Batch import create_masks
+from common.MyMNTDevice import MyMNTDevice
 from common.airtestProjectsCommon import get_img_txt
 from common.env import training_data_save_directory, project_root_path, 状态词典, 状态词典B, 操作查询词典, 操作词典
 from common.my_logger import logger
+from common.resnet_utils import myResnet
 from common.stop import stop
-from resnet_utils import myResnet
-from 取训练数据 import *
-from 杂项 import *
-from 模型_策略梯度 import 智能体
-from 辅助功能 import 状态信息综合
-from 运行辅助 import *
+from common.模型_策略梯度 import 智能体
 
 # threading.Lock是 Python 中threading模块提供的一种简单的线程同步机制，用于实现互斥锁（Mutex Lock）。
 # 当一个线程获取了锁（通过lock.acquire()方法）后，其他线程在尝试获取该锁时将被阻塞，直到锁被释放（通过lock.release()方法）。
@@ -163,7 +162,7 @@ def 处理方向():
 
 
 def 判断状态(device, resnet101, image_path):
-    from 模型_策略梯度 import Transformer
+    from common.模型_策略梯度 import Transformer
     model_判断状态 = Transformer(6, 768, 2, 12, 0.0, 6 * 6 * 2048)
     model_判断状态.load_state_dict(torch.load('E:/ai-play-wzry/weights/model_weights_judgment_state.pth'))
     model_判断状态.cuda(device)

@@ -1,8 +1,8 @@
 import json
 import time
 
+from common.MyMNTDevice import MyMNTDevice
 from common.env import device_id
-from 运行辅助 import MyMNTDevice
 
 device = MyMNTDevice(device_id)
 

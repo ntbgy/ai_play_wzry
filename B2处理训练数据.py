@@ -6,7 +6,7 @@ import torchvision
 from PIL import Image
 
 import json
-from resnet_utils import myResnet
+from common.resnet_utils import myResnet
 
 操作记录 = 'E:/ai-play-wzry/训练数据样本/未用'
 if not os.path.exists(操作记录):

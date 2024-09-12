@@ -11,12 +11,12 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.distributions.categorical import Categorical
 
-from Batch import create_masks
-from Embed import Embedder
-from Layers import DecoderLayer
 from Sublayers import Norm, 全连接层
-from config import TransformerConfig
-from 杂项 import 打印抽样数据
+from common import 打印抽样数据
+from common.Batch import create_masks
+from common.Embed import Embedder
+from common.Layers import DecoderLayer
+from common.TransformerConfig import TransformerConfig
 
 
 def save_obj(obj, name):

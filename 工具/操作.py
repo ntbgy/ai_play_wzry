@@ -1,6 +1,6 @@
 import json
 
-from 运行辅助 import MyMNTDevice
+from common.MyMNTDevice import MyMNTDevice
 
 _DEVICE_ID = 'emulator-5554'
 设备 = MyMNTDevice(_DEVICE_ID)

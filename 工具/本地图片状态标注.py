@@ -13,12 +13,12 @@ from PIL import Image, ImageDraw, ImageFont
 from pynput import keyboard
 from pynput.keyboard import Key, Listener
 
-from Batch import create_masks
 from common import get_files_path
+from common.Batch import create_masks
 from common.env import 判断状态模型地址, 状态词典B, 状态词典
 from common.my_logger import logger
-from resnet_utils import myResnet
-from 模型_策略梯度 import Transformer
+from common.resnet_utils import myResnet
+from common.模型_策略梯度 import Transformer
 
 态 = '暂停'
 

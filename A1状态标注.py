@@ -5,27 +5,21 @@ C:\Users\ntbgy\.conda\envs\wzry38\Lib\site-packages\PyQt5\Qt5\plugins\platforms
 echo %QT_QPA_PLATFORM_PLUGIN_PATH%
 
 """
-import os
 import random
 import sys
 import time
 
-import numpy as np
-import torch
 import torchvision
-import win32gui
 from PyQt5.QtWidgets import QApplication
 from pynput import keyboard
 from pynput.keyboard import Key, Listener
 
-import json
-from Batch import create_masks
-from resnet_utils import myResnet
-from 取训练数据 import 读出引索
-from 模型_策略梯度 import Transformer
-from 模型_策略梯度 import 智能体
-from 辅助功能 import 状态信息综合
-from 运行辅助 import MyMNTDevice, get_window_image
+from common import *
+from common.Batch import create_masks
+from common.MyMNTDevice import MyMNTDevice
+from common.resnet_utils import myResnet
+from common.模型_策略梯度 import Transformer
+from common.模型_策略梯度 import 智能体
 
 device_id = 'emulator-5554'
 scrcpy_windows_name = "LIO-AN00"

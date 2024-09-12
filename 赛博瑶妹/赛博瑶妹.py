@@ -4,8 +4,8 @@ from pathlib import Path
 
 from paddleocr import PaddleOCR
 
+from common import get_window_image
 from env import *
-from 运行辅助 import get_window_image
 
 # 获取当前文件绝对路径
 dir_path = os.path.dirname(os.path.abspath(__file__))
