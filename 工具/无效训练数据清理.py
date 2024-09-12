@@ -9,6 +9,6 @@ for name in names:
     path = os.path.join(training_data_save_directory, name)
     images = os.listdir(path)
     images = [item for item in images if '.jpg' in item]
-    if len(images) <= 600:
+    if len(images) <= 800:
         print(name)
         shutil.rmtree(path)

@@ -1,6 +1,5 @@
 import sys
 import threading
-import time
 
 import pyautogui
 import torchvision
@@ -27,6 +26,8 @@ lock = threading.Lock()
 # 全局变量初始化
 AI打开 = True
 攻击态 = False
+补刀态 = False
+推塔态 = False
 W键按下 = False
 S键按下 = False
 A键按下 = False
@@ -52,7 +53,8 @@ def get_key_name(key) -> str:
 
 # 监听按压
 def on_press(key):
-    global W键按下, S键按下, A键按下, D键按下, 操作列, Q键按下, 攻击态
+    global W键按下, S键按下, A键按下, D键按下, 操作列, Q键按下
+    global 攻击态, 补刀态, 推塔态
     # 哎，.lower() 这里给自己坑死了
     key_name = get_key_name(key).lower()
     manual_manipulation = ''
@@ -90,11 +92,11 @@ def on_press(key):
     elif key_name == 'key.up':
         攻击态 = True
     elif key_name == 'key.delete':
-        manual_manipulation = '补刀'
+        补刀态 = True
     elif key_name == 'key.end':
-        manual_manipulation = '攻击'
+        攻击态 = True
     elif key_name == 'key.page_down':
-        manual_manipulation = '推塔'
+        推塔态 = True
     if manual_manipulation in ('回城', '恢复'):
         操作列.clear()
         操作列.append(manual_manipulation)
@@ -105,10 +107,11 @@ def on_press(key):
 
 # 监听释放
 def on_release(key):
-    global W键按下, S键按下, A键按下, D键按下, Q键按下, 攻击态
+    global W键按下, S键按下, A键按下, D键按下, Q键按下
+    global 攻击态, 补刀态, 推塔态
     key_name = get_key_name(key)
     if key == Key.esc:
-        logger.warning('停止监听')
+        logger.info('停止监听')
         return False
     if key_name == 'w':
         W键按下 = False
@@ -122,7 +125,12 @@ def on_release(key):
         Q键按下 = False
     elif key_name=='Key.up' :
         攻击态=False
-
+    elif key_name == 'Key.end':
+        攻击态 = False
+    elif key_name == 'Key.delete':
+        补刀态 = False
+    elif key_name == 'Key.page_down':
+        推塔态 = False
 
 # 开始监听
 def start_listen():
@@ -198,8 +206,10 @@ def 发送指令(pyminitouch_device, 指令, sleep_time=0):
         return False
 
 
+# noinspection PyUnboundLocalVariable
 def 训练数据截取(device_id, scrcpy_windows_name, 手工介入=True, flag_file_name='stop_flag.txt'):
-    global 操作列, sp, AI打开, 攻击态
+    global 操作列, sp, AI打开
+    global 攻击态, 补刀态, 推塔态
     AI打开 = True
     自动 = 0
     if 手工介入 is True:
@@ -277,10 +287,9 @@ def 训练数据截取(device_id, scrcpy_windows_name, 手工介入=True, flag_f
                 动作, 动作可能性, 评价 = 智能体.选择动作(状态, device, 1, False)
 
                 指令 = 数_词表[str(动作)]
-                logger.debug(f"指令：{指令}，动作可能性：{动作可能性}，评价：{评价}。")
                 指令集 = 指令.split('_')
                 自动移动指令, 自动动作指令 = 指令集[0], 指令集[1]
-
+                # logger.debug(f"自动移动指令: {自动移动指令}, 自动动作指令: {自动动作指令}")
                 # 游戏中可以设置自动购买装备，自动加技能
                 # if 计数 % 50 == 0 and 计数 != 0:
                 #     pyminitouch_device.发送(操作查询词典['购买'])
@@ -297,7 +306,11 @@ def 训练数据截取(device_id, scrcpy_windows_name, 手工介入=True, flag_f
                 操作词典['图片号'] = str(i)
                 手动移动指令 = 处理方向()
 
-                if 手动移动指令 != '' or len(操作列) != 0 or 攻击态 == True:
+                if (手动移动指令 != ''
+                        or len(操作列) != 0
+                        or 攻击态 == True
+                        or 补刀态 == True
+                        or 推塔态 == True):
                     if 手动移动指令 == '':
                         操作词典['移动操作'] = 自动移动指令
                     else:
@@ -310,6 +323,10 @@ def 训练数据截取(device_id, scrcpy_windows_name, 手工介入=True, flag_f
                         lock.release()
                     elif 攻击态 is True:
                         操作词典['动作操作'] = '攻击'
+                    elif 补刀态 is True:
+                        操作词典['动作操作'] = '补刀'
+                    elif 推塔态 is True:
+                        操作词典['动作操作'] = '推塔'
                     else:
                         操作词典['动作操作'] = '无动作'
 
@@ -336,6 +353,7 @@ def 训练数据截取(device_id, scrcpy_windows_name, 手工介入=True, flag_f
                             break
 
                 elif 手动移动指令 == '' and len(操作列) == 0:
+                    logger.debug(f"自动模式，{自动移动指令}，{自动动作指令}")
                     操作列 = []
                     操作词典['移动操作'] = 自动移动指令
                     操作词典['动作操作'] = 自动动作指令
@@ -404,6 +422,8 @@ def scrcpy(s='--max-size 960 --always-on-top'):
     """
     启动scrcpy
     """
+    # os.system(f'adb kill-server')
+    # os.system(f'adb start-server')
     os.system(f'scrcpy {s}')
 
 # 启动游戏
@@ -432,7 +452,7 @@ def single_run(dir_path, device_id, scrcpy_windows_name, flag_file_name):
     if os.path.exists(flag_file_name):
         os.remove(flag_file_name)
     # 进入游戏
-    start_game(dir_path)
+    # start_game(dir_path)
     # 打开scrcpy
     th1 = threading.Thread(target=scrcpy)
     # 将线程设置为守护线程（daemon = True），当主线程结束时，守护线程会自动退出。
@@ -453,6 +473,41 @@ def single_run(dir_path, device_id, scrcpy_windows_name, flag_file_name):
     main_window.close()
     logger.info('关闭scrcpy窗口done')
 
+
+def runs(dir_path, device_id, scrcpy_windows_name, flag_file_name):
+    """
+    运行多局游戏
+    """
+    # 防止还没开始就结束了
+    global sp
+    # 打开scrcpy
+    th1 = threading.Thread(target=scrcpy)
+    # 将线程设置为守护线程（daemon = True），当主线程结束时，守护线程会自动退出。
+    th1.daemon = True
+    th1.start()
+    for i in range(1, 3 + 1):
+        logger.info(f'第{i}局游戏开始！')
+        sp.set_stop(False)
+        if os.path.exists(flag_file_name):
+            os.remove(flag_file_name)
+        # 进入游戏
+        start_game(dir_path)
+        # AI打游戏
+        th2 = threading.Thread(target=训练数据截取, args=(device_id, scrcpy_windows_name, True, flag_file_name))
+        th2.start()
+        # 检测游戏是否结束，不停检测会卡死，emmmm
+        th3 = threading.Thread(target=check_game_status, args=(flag_file_name,))
+        th3.start()
+        th2.join()
+        logger.info('AI打游戏线程done')
+        th3.join()
+        logger.info('检测游是否已结束线程done')
+        logger.info(f'第{i}局游戏结束！')
+
+    app = Application(backend="uia").connect(title=scrcpy_windows_name)
+    main_window = app.window(title_re=scrcpy_windows_name)
+    main_window.close()
+    logger.info('关闭scrcpy窗口done')
 
 if __name__ == '__main__':
     import logging
@@ -484,23 +539,5 @@ if __name__ == '__main__':
             logdir=True,
             devices=[airtest_devices]
         )
-    """
-    # AI打游戏
-    th2 = threading.Thread(target=训练数据截取, args=(device_id, scrcpy_windows_name, True, flag_file_name))
-    th2.start()
-    # 检测游戏是否结束，不停检测会卡死，emmmm
-    th3 = threading.Thread(target=check_game_status, args=(flag_file_name,))
-    th3.start()
-    th2.join()
-    logger.info('AI打游戏线程done')
-    th3.join()
-    logger.info('检测游是否已结束线程done')
-    """
-    for i in range(1, 6):
-        logger.warning(f'第{i}局游戏开始！')
-        try:
-            single_run(dir_path, device_id, scrcpy_windows_name, flag_file_name)
-            time.sleep(5)
-        except:
-            pass
-        logger.warning(f'第{i}局游戏结束！')
+    single_run(dir_path, device_id, scrcpy_windows_name, flag_file_name)
+    # runs(dir_path, device_id, scrcpy_windows_name, flag_file_name)

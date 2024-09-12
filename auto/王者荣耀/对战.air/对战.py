@@ -112,7 +112,8 @@ def 离线5V5(dir_path):
         ocr_now_touch('返回大厅', dir_path)
         sleep(2)
     elif '开始游戏' in txt:
-        touch(Template(filename='屏幕截图 2024-09-06 082752.png'))
+        # touch(Template(filename='屏幕截图 2024-09-06 082752.png'))
+        touch((2925, 399))
         sleep(2)
     elif '单机模式' in txt:
         print('当前已进入单机模式')
@@ -124,16 +125,24 @@ def 离线5V5(dir_path):
         sleep(1.0)
         start_app("com.tencent.tmgp.sgame")
         sleep(30)
-        touch(Template(filename='屏幕截图 2024-09-06 082752.png'))
+        if exists(Template(filename='tpl1724255354605.png')):
+            touch(Template(filename='tpl1724255354605.png'))
+        # touch(Template(filename='屏幕截图 2024-09-06 082752.png'))
+        touch((2925, 399))
         sleep(2)
     ocr_now_touch('5V5模式', dir_path)
+    sleep(1)
+    ocr_now_touch('倔强青铜', dir_path)
     sleep(1)
     ocr_now_touch('开始练习', dir_path)
     sleep(1)
     # touch(Template(filename='屏幕截图 2024-09-06 083209.png'))
     touch((694, 666))
     sleep(1)
-    ocr_now_touch('射手', dir_path)
+    if '发育路' in get_now_img_txt(dir_path):
+        ocr_now_touch('发育路', dir_path)
+    else:
+        ocr_now_touch('射手', dir_path)
     sleep(1)
     touch(Template(filename='屏幕截图 2024-09-06 083341.png'))
     sleep(1)
