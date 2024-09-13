@@ -7,19 +7,16 @@ echo %QT_QPA_PLATFORM_PLUGIN_PATH%
 """
 import random
 import sys
-import time
 
-import torchvision
 from PyQt5.QtWidgets import QApplication
-from pynput import keyboard
 from pynput.keyboard import Key, Listener
 
 from common import *
+from common import Transformer
 from common.Batch import create_masks
 from common.MyMNTDevice import MyMNTDevice
 from common.resnet_utils import myResnet
-from common.模型_策略梯度 import Transformer
-from common.模型_策略梯度 import 智能体
+from common.智能体 import 智能体
 
 device_id = 'emulator-5554'
 scrcpy_windows_name = "LIO-AN00"

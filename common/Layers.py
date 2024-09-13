@@ -1,6 +1,6 @@
 import torch.nn as nn
 
-from Sublayers import FeedForward, MultiHeadAttention, Norm
+from common.Sublayers import FeedForward, MultiHeadAttention, Norm
 
 
 class DecoderLayer(nn.Module):

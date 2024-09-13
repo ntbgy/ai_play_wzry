@@ -2,9 +2,7 @@ import sys
 import threading
 
 import pyautogui
-import torchvision
 from airtest.core.api import *
-from pynput import keyboard
 from pynput.keyboard import Key, Listener
 from pywinauto import Application
 
@@ -13,11 +11,11 @@ from common import *
 from common.Batch import create_masks
 from common.MyMNTDevice import MyMNTDevice
 from common.airtestProjectsCommon import get_img_txt
-from common.env import training_data_save_directory, project_root_path, 状态词典, 状态词典B, 操作查询词典, 操作词典
+from common.env import training_data_save_directory, project_root_path, 操作查询词典, 操作词典
 from common.my_logger import logger
 from common.resnet_utils import myResnet
 from common.stop import stop
-from common.模型_策略梯度 import 智能体
+from common.智能体 import 智能体
 
 # threading.Lock是 Python 中threading模块提供的一种简单的线程同步机制，用于实现互斥锁（Mutex Lock）。
 # 当一个线程获取了锁（通过lock.acquire()方法）后，其他线程在尝试获取该锁时将被阻塞，直到锁被释放（通过lock.release()方法）。
@@ -41,14 +39,6 @@ sp = stop()
     轮数=3,
     输入维度=6
 )
-
-def get_key_name(key) -> str:
-    """从pynput.keyboard模块中的按键对象中提取出一个可识别的键名"""
-    if isinstance(key, keyboard.KeyCode):
-        return key.char
-    else:
-        return str(key)
-
 
 # 监听按压
 def on_press(key):
@@ -159,33 +149,6 @@ def 处理方向():
         return '右下移'
     else:
         return ''
-
-
-def 判断状态(device, resnet101, image_path):
-    from common.模型_策略梯度 import Transformer
-    model_判断状态 = Transformer(6, 768, 2, 12, 0.0, 6 * 6 * 2048)
-    model_判断状态.load_state_dict(torch.load('E:/ai-play-wzry/weights/model_weights_judgment_state.pth'))
-    model_判断状态.cuda(device)
-    image = Image.open(image_path)
-    图片数组 = np.asarray(image)
-    截屏 = torch.from_numpy(图片数组).cuda(device).unsqueeze(0).permute(0, 3, 2, 1) / 255
-    _, out = resnet101(截屏)
-    out = torch.reshape(out, (1, 6 * 6 * 2048))
-    操作序列A = np.ones((1, 1))
-    操作张量A = torch.from_numpy(操作序列A.astype(np.int64)).cuda(device)
-    src_mask, trg_mask = create_masks(操作张量A.unsqueeze(0), 操作张量A.unsqueeze(0), device)
-    outA = out.detach()
-    实际输出, _ = model_判断状态(outA.unsqueeze(0), 操作张量A.unsqueeze(0), trg_mask)
-    _, 抽样 = torch.topk(实际输出, k=1, dim=-1)
-    抽样np = 抽样.cpu().numpy()
-    状态列表 = []
-    for K in 状态词典B:
-        状态列表.append(K)
-    状况 = 状态列表[抽样np[0, 0, 0, 0]]
-    得分 = 状态词典[状况]
-    logger.debug(f'image_path: {image_path}，判断状态：{状况}，得分：{得分}')
-    return 状况, 得分
-
 
 def 追加记录(file_path, data):
     with open(file_path, 'a', encoding='utf-8') as f:

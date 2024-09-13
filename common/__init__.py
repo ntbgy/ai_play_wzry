@@ -1,15 +1,25 @@
 import ctypes
 import json
 import os
+import pickle
+import time
 from pathlib import Path
 
+import cv2
 import numpy as np
 import torch
+import torchvision
 import win32gui
 import win32ui
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 from paddleocr import PaddleOCR
+from pynput import keyboard
 from torch.autograd import Variable
+
+from common.Batch import create_masks
+from common.Transformer import Transformer
+from common.env import 判断状态模型地址, 状态词典B, 状态词典
+from common.resnet_utils import myResnet
 
 
 def get_dirs_path(dir_path):
@@ -395,3 +405,163 @@ def 读出引索(词_数表路径, 数_词表路径):
 def 状态信息综合(图片张量, 操作序列, trg_mask):
     状态 = {'图片张量': 图片张量[np.newaxis, :], '操作序列': 操作序列, 'trg_mask': trg_mask}
     return 状态
+
+
+def my_cv_imread(filepath):
+    """
+    支持路径有中文还能cv2读取
+    """
+    # 使用imdecode函数进行读取
+    img = cv2.imdecode(np.fromfile(filepath, dtype=np.uint8), -1)
+    return img
+
+
+def get_key_name(key):
+    """从pynput.keyboard模块中的按键对象中提取出一个可识别的键名"""
+    if isinstance(key, keyboard.KeyCode):
+        return key.char
+    else:
+
+        return str(key)
+
+
+def cv2ImgAddText(img, text, left, top, textColor=(0, 255, 0), textSize=20):
+    if isinstance(img, np.ndarray):  # 判断是否OpenCV图片类型
+        img = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+    # 创建一个可以在给定图像上绘图的对象
+    draw = ImageDraw.Draw(img)
+    # 字体的格式
+    fontStyle = ImageFont.truetype(
+        'C:/Windows/Fonts/STHUPO.TTF', textSize, encoding="utf-8")
+    # 绘制文本
+    draw.text((left, top), text, textColor, font=fontStyle)
+    # 转换回OpenCV格式
+    return cv2.cvtColor(np.asarray(img), cv2.COLOR_RGB2BGR)
+
+
+def get_now():
+    current_time = time.time()
+    millisecond_part = str(int((current_time % 1) * 100)).zfill(2)
+    time_struct = time.localtime(current_time)
+    formatted_time = time.strftime('%Y%m%d%H%M%S', time_struct)
+    return f"{formatted_time}{millisecond_part}"
+
+
+def get_state_score(image_path):
+    device = torch.device("cuda:0" if (torch.cuda.is_available()) else "cpu")
+    mod = torchvision.models.resnet101(pretrained=True).eval().cuda(device).requires_grad_(False)
+    resnet101 = myResnet(mod)
+    model_判断状态 = Transformer(6, 768, 2, 12, 0.0, 6 * 6 * 2048)
+    model_判断状态.load_state_dict(torch.load(判断状态模型地址))
+    model_判断状态.cuda(device)
+    image = Image.open(image_path)
+    图片数组 = np.asarray(image)
+    截屏 = torch.from_numpy(图片数组).cuda(device).unsqueeze(0).permute(0, 3, 2, 1) / 255
+    _, out = resnet101(截屏)
+    out = torch.reshape(out, (1, 6 * 6 * 2048))
+    操作序列A = np.ones((1, 1))
+    操作张量A = torch.from_numpy(操作序列A.astype(np.int64)).cuda(device)
+    src_mask, trg_mask = create_masks(操作张量A.unsqueeze(0), 操作张量A.unsqueeze(0), device)
+    outA = out.detach()
+    实际输出, _ = model_判断状态(outA.unsqueeze(0), 操作张量A.unsqueeze(0), trg_mask)
+    _, 抽样 = torch.topk(实际输出, k=1, dim=-1)
+    抽样np = 抽样.cpu().numpy()
+    状态列表 = []
+    for K in 状态词典B:
+        状态列表.append(K)
+    state = 状态列表[抽样np[0, 0, 0, 0]]
+    score = 状态词典[state]
+    return state, score
+
+
+def save_obj(obj, name):
+    with open(name + '.pkl', 'wb') as f:
+        pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
+
+
+def load_obj(name):
+    with open(name, 'rb') as f:
+        return pickle.load(f)
+
+
+def get_model(opt, trg_vocab, model_weights='model_weights'):
+    assert opt.d_model % opt.heads == 0
+    assert opt.dropout < 1
+
+    model = Transformer(trg_vocab, opt.d_model, opt.n_layers, opt.heads, opt.dropout)
+
+    if opt.load_weights is not None and os.path.isfile(opt.load_weights + '/' + model_weights):
+        print("loading pretrained weights...")
+        model.load_state_dict(torch.load(f'{opt.load_weights}/{model_weights}'))
+    else:
+        量 = 0
+        for p in model.parameters():
+            if p.dim() > 1:
+                # nn.init.xavier_uniform_(p)
+                a = 0
+            长 = len(p.shape)
+            点数 = 1
+            for j in range(长):
+                点数 = p.shape[j] * 点数
+
+            量 += 点数
+        print('使用参数:{}百万'.format(量 / 1000000))
+    return model
+
+
+def 处理状态参数(状态组, device):
+    最长 = 0
+    状态组合 = {}
+
+    # 操作序列 = np.ones((1,))
+    for 状态A in 状态组:
+        if 状态A['图片张量'].shape[1] > 最长:
+            最长 = 状态A['图片张量'].shape[1]
+    for 状态 in 状态组:
+        状态A = 状态.copy()
+        if 状态A['图片张量'].shape[1] == 最长:
+            单元 = 状态A
+            操作序列 = np.ones((最长,))
+            遮罩序列 = torch.from_numpy(操作序列.astype(np.int64)).cuda(device).unsqueeze(0)
+            单元['遮罩序列'] = 遮罩序列
+
+        else:
+            有效长度 = 状态A['图片张量'].shape[1]
+            差值 = 最长 - 有效长度
+            形状 = 状态A['图片张量'].shape
+            图片张量_拼接 = torch.zeros(形状[0], 差值, 形状[2], 形状[3]).cuda(device).float()
+            图片张量_拼接 = 图片张量_拼接.cpu().numpy()
+            状态A['图片张量'] = np.append(状态A['图片张量'], 图片张量_拼接, axis=1)
+            # 状态A['图片张量'] = torch.cat((状态A['图片张量'], 图片张量_拼接), 1)
+            形状 = 状态A['角度集张量_序列'].shape
+            角度集张量_拼接 = torch.zeros(形状[0], 差值, 形状[2]).cuda(device).float()
+            状态A['角度集张量_序列'] = torch.cat((状态A['角度集张量_序列'], 角度集张量_拼接), 1)
+
+            形状 = 状态A['位置张量_序列'].shape
+            位置张量_拼接 = torch.zeros(形状[0], 差值, 形状[2]).cuda(device).float()
+            状态A['位置张量_序列'] = torch.cat((状态A['位置张量_序列'], 位置张量_拼接), 1)
+
+            形状 = 状态A['速度张量_序列'].shape
+            速度张量_拼接 = torch.zeros(形状[0], 差值, 形状[2]).cuda(device).float()
+            状态A['速度张量_序列'] = torch.cat((状态A['速度张量_序列'], 速度张量_拼接), 1)
+
+            操作序列 = np.ones((有效长度,))
+            遮罩序列 = torch.from_numpy(操作序列.astype(np.int64)).cuda(device).unsqueeze(0)
+            状态A['遮罩序列'] = 遮罩序列
+            操作序列 = np.ones((差值,)) * -1
+            遮罩序列 = torch.from_numpy(操作序列.astype(np.int64)).cuda(device).unsqueeze(0)
+            状态A['遮罩序列'] = torch.cat((状态A['遮罩序列'], 遮罩序列), 1)
+            单元 = 状态A
+
+        if 状态组合 == {}:
+            状态组合 = 单元
+        else:
+            状态组合['遮罩序列'] = torch.cat((状态组合['遮罩序列'], 单元['遮罩序列']), 0)
+            状态组合['速度张量_序列'] = torch.cat((状态组合['速度张量_序列'], 单元['速度张量_序列'],), 0)
+            状态组合['位置张量_序列'] = torch.cat((状态组合['位置张量_序列'], 单元['位置张量_序列']), 0)
+            状态组合['角度集张量_序列'] = torch.cat((状态组合['角度集张量_序列'], 单元['角度集张量_序列']), 0)
+            # 状态组合['图片张量'] = torch.cat((状态组合['图片张量'], 单元['图片张量']), 0)
+            状态组合['图片张量'] = np.append(状态组合['图片张量'], 单元['图片张量'], axis=0)
+    src_mask, trg_mask = create_masks(状态组合['遮罩序列'], 状态组合['遮罩序列'], device)
+    状态组合['trg_mask'] = trg_mask
+    return 状态组合

@@ -9,11 +9,11 @@ import torchvision
 from PIL import Image
 
 import json
+from common import Transformer
 from common.Batch import create_masks
 from common.Sublayers import 全连接层
 from common.env import 状态词典B, 判断状态模型地址
 from common.resnet_utils import myResnet
-from common.模型_策略梯度 import Transformer
 
 device = torch.device("cuda:0" if (torch.cuda.is_available()) else "cpu")
 resnet101 = torchvision.models.resnet101(pretrained=True).eval()

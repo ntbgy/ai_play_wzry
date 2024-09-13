@@ -9,50 +9,18 @@ import cv2
 import numpy as np
 import torch
 import torchvision
-from PIL import Image, ImageDraw, ImageFont
-from pynput import keyboard
+from PIL import Image
 from pynput.keyboard import Key, Listener
 
-from common import get_files_path
+from common import get_files_path, get_key_name, cv2ImgAddText, get_now, get_state_score, Transformer
 from common.Batch import create_masks
 from common.env import 判断状态模型地址, 状态词典B, 状态词典
 from common.my_logger import logger
 from common.resnet_utils import myResnet
-from common.模型_策略梯度 import Transformer
 
 态 = '暂停'
 
 import sqlite3
-
-def cv2ImgAddText(img, text, left, top, textColor=(0, 255, 0), textSize=20):
-    if isinstance(img, np.ndarray):  # 判断是否OpenCV图片类型
-        img = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
-    # 创建一个可以在给定图像上绘图的对象
-    draw = ImageDraw.Draw(img)
-    # 字体的格式
-    fontStyle = ImageFont.truetype(
-        'C:/Windows/Fonts/STHUPO.TTF', textSize, encoding="utf-8")
-    # 绘制文本
-    draw.text((left, top), text, textColor, font=fontStyle)
-    # 转换回OpenCV格式
-    return cv2.cvtColor(np.asarray(img), cv2.COLOR_RGB2BGR)
-
-
-def my_cv_imread(filepath):
-    """
-    支持路径有中文还能cv2读取
-    """
-    # 使用imdecode函数进行读取
-    img = cv2.imdecode(np.fromfile(filepath, dtype=np.uint8), -1)
-    return img
-
-
-def get_key_name(key):
-    if isinstance(key, keyboard.KeyCode):
-        return key.char
-    else:
-
-        return str(key)
 
 
 # 监听按压
@@ -247,41 +215,6 @@ def calculate_training_data_score():
     conn.close()
 
 
-def get_now():
-    current_time = time.time()
-    millisecond_part = str(int((current_time % 1) * 100)).zfill(2)
-    time_struct = time.localtime(current_time)
-    formatted_time = time.strftime('%Y%m%d%H%M%S', time_struct)
-    return f"{formatted_time}{millisecond_part}"
-
-
-def get_state_score(image_path):
-    device = torch.device("cuda:0" if (torch.cuda.is_available()) else "cpu")
-    mod = torchvision.models.resnet101(pretrained=True).eval().cuda(device).requires_grad_(False)
-    resnet101 = myResnet(mod)
-    model_判断状态 = Transformer(6, 768, 2, 12, 0.0, 6 * 6 * 2048)
-    model_判断状态.load_state_dict(torch.load(判断状态模型地址))
-    model_判断状态.cuda(device)
-    image = Image.open(image_path)
-    图片数组 = np.asarray(image)
-    截屏 = torch.from_numpy(图片数组).cuda(device).unsqueeze(0).permute(0, 3, 2, 1) / 255
-    _, out = resnet101(截屏)
-    out = torch.reshape(out, (1, 6 * 6 * 2048))
-    操作序列A = np.ones((1, 1))
-    操作张量A = torch.from_numpy(操作序列A.astype(np.int64)).cuda(device)
-    src_mask, trg_mask = create_masks(操作张量A.unsqueeze(0), 操作张量A.unsqueeze(0), device)
-    outA = out.detach()
-    实际输出, _ = model_判断状态(outA.unsqueeze(0), 操作张量A.unsqueeze(0), trg_mask)
-    _, 抽样 = torch.topk(实际输出, k=1, dim=-1)
-    抽样np = 抽样.cpu().numpy()
-    状态列表 = []
-    for K in 状态词典B:
-        状态列表.append(K)
-    state = 状态列表[抽样np[0, 0, 0, 0]]
-    score = 状态词典[state]
-    return state, score
-
-
 def status_annotation_from_db():
     while True:
         # 建立与数据库的连接
@@ -291,7 +224,7 @@ def status_annotation_from_db():
         s_sql = """
     SELECT id, root_path, name, image_name
     FROM training_full_data WHERE state is NULL
-    ORDER BY id ASC LIMIT 100
+    ORDER BY id DESC LIMIT 100
         """
         cursor.execute(s_sql)
         data = cursor.fetchall()

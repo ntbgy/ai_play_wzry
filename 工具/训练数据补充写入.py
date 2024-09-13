@@ -1,16 +1,8 @@
 import json
 import os
 import sqlite3
-import time
 
-
-def get_now():
-    current_time = time.time()
-    millisecond_part = str(int((current_time % 1) * 100)).zfill(2)
-    time_struct = time.localtime(current_time)
-    formatted_time = time.strftime('%Y%m%d%H%M%S', time_struct)
-    return f"{formatted_time}{millisecond_part}"
-
+from common import get_now
 
 root_path = "E:/ai-play-wzry/训练数据样本/未用"
 names = os.listdir(root_path)
@@ -18,10 +10,19 @@ for name in names:
     with open(f'{root_path}/{name}/_操作数据.json', 'r', encoding='utf-8') as f:
         data = f.read()
     data = data.strip().split('\n')
+
     # 建立与数据库的连接
     conn = sqlite3.connect(r'C:\Users\ntbgy\PycharmProjects\ai-play-wzry\data\AiPlayWzryDb.db')
     # 创建游标对象
     cursor = conn.cursor()
+    s_sql = f"""
+    select count(*) from training_full_data where name='{name}'
+            """
+    cursor.execute(s_sql)
+    s_data = cursor.fetchall()
+    if int(s_data[0][0]) == len(data):
+        print('无需处理', name)
+        continue
     print('正在处理', name)
     for line in data:
         image_name = json.loads(line)['图片号'] + '.jpg'
@@ -29,8 +30,8 @@ for name in names:
 select * from training_full_data where name='{name}' and image_name='{image_name}'
         """
         cursor.execute(s_sql)
-        data = cursor.fetchall()
-        if data:
+        s_data = cursor.fetchall()
+        if s_data:
             continue
         now = get_now()
         i_sql = f"""

@@ -1,12 +1,9 @@
-import time
-
 from common import *
-from common import 读出引索
+from common import 读出引索, Transformer
 from common.Batch import create_masks
 from common.TransformerConfig import TransformerConfig
 from common.env import 状态词典, 状态词典B
-from common.模型_策略梯度 import Transformer
-from common.模型_策略梯度 import 智能体
+from common.智能体 import 智能体
 
 状态列表 = [K for K in 状态词典B]
 训练数据保存目录 = 'E:/ai-play-wzry/训练数据样本/未用'
