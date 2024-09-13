@@ -75,7 +75,10 @@ for i in range(100):
         状态编号 = 状态词典B[全部数据[key]]
         状态[0] = 状态编号
         目标输出 = torch.from_numpy(状态).cuda(device)
-        图片路径 = r'E:\ai-play-wzry\判断数据样本\\' + key + '.jpg'
+        if '.jpg' in key:
+            图片路径 = r'E:\ai-play-wzry\判断数据样本\\' + key
+        else:
+            图片路径 = r'E:\ai-play-wzry\判断数据样本\\' + key + '.jpg'
         if os.path.isfile(图片路径):
             img = Image.open(图片路径)
         else:
