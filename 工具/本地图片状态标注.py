@@ -216,6 +216,7 @@ def calculate_training_data_score():
 
 
 def status_annotation_from_training_full_data():
+    """"计算训练数据状态与得分"""
     while True:
         # 建立与数据库的连接
         conn = sqlite3.connect(r'C:\Users\ntbgy\PycharmProjects\ai-play-wzry\data\AiPlayWzryDb.db')
@@ -251,6 +252,7 @@ def status_annotation_from_training_full_data():
 
 
 def status_annotation_from_db():
+    """对重新计算判断状态不一致的结果手工确认"""
     global 态
     th = threading.Thread(target=start_listen, )
     th.daemon = True
@@ -273,44 +275,25 @@ def status_annotation_from_db():
         ORDER BY id DESC LIMIT 100
             """
     s_sql = """
-    SELECT root_path, image_name 
-    FROM judge_state_data
-    WHERE state_old != state_new and state_new is not NULL
+SELECT id, root_path, image_name, judge_state_json, state_old, state_new
+FROM judge_state_data 
+WHERE state_old != state_new 
+AND state_new is not NULL 
+AND exist = 'True'
     """
     cursor.execute(s_sql)
     data = cursor.fetchall()
+
     for line in data:
-        image_path = '/'.join(line)
-        print(image_path)
-        image_new_name = line[1] + '_' + line[2]
-        image_new_path = f'E:\\ai-play-wzry\\判断数据样本\\{image_new_name}'
-        if os.path.isfile(image_new_path):
-            continue
-        image = Image.open(image_path)
-        图片数组 = np.asarray(image)
-        截屏 = torch.from_numpy(图片数组).cuda(device).unsqueeze(0).permute(0, 3, 2, 1) / 255
-        _, out = resnet101(截屏)
-        out = torch.reshape(out, (1, 6 * 6 * 2048))
-        操作序列A = np.ones((1, 1))
-        操作张量A = torch.from_numpy(操作序列A.astype(np.int64)).cuda(device)
-        src_mask, trg_mask = create_masks(操作张量A.unsqueeze(0), 操作张量A.unsqueeze(0), device)
-        outA = out.detach()
-        实际输出, _ = model_判断状态(outA.unsqueeze(0), 操作张量A.unsqueeze(0), trg_mask)
-        _, 抽样 = torch.topk(实际输出, k=1, dim=-1)
-        抽样np = 抽样.cpu().numpy()
-        状态列表 = []
-        for K in 状态词典B:
-            状态列表.append(K)
-        状况 = 状态列表[抽样np[0, 0, 0, 0]]
-        logger.info(状况)
+        print(line)
+        image_path = '/'.join(line[1:3])
+
         截图 = cv2.imdecode(np.fromfile(image_path, dtype=np.uint8), -1)
-        截图 = cv2ImgAddText(截图, 状况, 0, 0, (000, 222, 111), 25)
+        截图 = cv2ImgAddText(截图, line[-2] + '->' + line[-1], 0, 0, (000, 222, 111), 25)
         cv2.imshow('image', 截图)
         cv2.waitKey()
 
-        while 态 == '暂停':
-            time.sleep(0.02)
-        if 态 == '过':
+        if 态 in ('过', '弃'):
             continue
         elif 态 == '普通':
             校准输出 = '普通'
@@ -324,38 +307,61 @@ def status_annotation_from_db():
             校准输出 = '击杀敌方英雄'
         elif 态 == '被击塔攻击':
             校准输出 = '被击塔攻击'
-        elif 态 == '弃':
-            态 = '暂停'
-            continue
         else:
-            logger.warning(f'{image_path}, {状况}')
             continue
-        新输出 = {image_new_name: 校准输出}
-        data_path = r'E:\ai-play-wzry\判断数据样本\判断新.json'
-        if os.path.isfile(data_path):
-            with open(data_path, 'a', encoding='utf-8') as f:
-                f.write(json.dumps(新输出, ensure_ascii=False))
-                f.write('\n')
-        else:
-            with open(data_path, 'w', encoding='utf-8') as f:
-                f.write(json.dumps(新输出, ensure_ascii=False))
-                f.write('\n')
-        print(image_path, image_new_path)
-        shutil.copy(image_path, image_new_path)
-        print(状况, 校准输出)
+
+        新输出 = json.dumps({line[2]: 校准输出},
+                            ensure_ascii=False)
+        print(新输出)
+        u_sql = f"""
+UPDATE judge_state_data
+SET judge_state_json='{新输出}', state_old='{校准输出}', state_new='{校准输出}', update_time='{get_now()}'
+WHERE id={line[0]};
+        """
+        # 执行 SQL 命令
+        cursor.execute(u_sql)
+        # 提交事务
+        conn.commit()
+
+    # 关闭游标
+    cursor.close()
+    # 关闭数据库连接
+    conn.close()
 
 
 def status_annotation_from_judge_state_data():
-    while True:
-        # 建立与数据库的连接
-        conn = sqlite3.connect(r'C:\Users\ntbgy\PycharmProjects\ai-play-wzry\data\AiPlayWzryDb.db')
-        # 创建游标对象
-        cursor = conn.cursor()
-        s_sql = """
-    SELECT id, root_path, image_name, state_old
-    FROM judge_state_data
-    ORDER BY id DESC LIMIT 100
+    """重新计算判断状态，用于检查模型判断结果"""
+    # 建立与数据库的连接
+    conn = sqlite3.connect(r'C:\Users\ntbgy\PycharmProjects\ai-play-wzry\data\AiPlayWzryDb.db')
+    # 创建游标对象
+    cursor = conn.cursor()
+    s_sql = """
+        SELECT count(*)
+        FROM judge_state_data
+            """
+    cursor.execute(s_sql)
+    data = cursor.fetchall()
+    num = data[0][0]
+
+    def _get_data(data_id):
+
+        s_sql = f"""
+            SELECT id, root_path, image_name, state_old
+            FROM judge_state_data
+            WHERE exist='True' and id >= {data_id}
+            ORDER BY id ASC LIMIT 100
         """
+        cursor.execute(s_sql)
+        data = cursor.fetchall()
+        num = len(data)
+
+        return num,data
+    import math
+    data_id = 0
+    for _ in range(math.ceil(num / 100)):
+        num, data = _get_data(data_id)
+        data_id += num
+
         cursor.execute(s_sql)
         data = cursor.fetchall()
         if not data:
@@ -366,7 +372,7 @@ def status_annotation_from_judge_state_data():
             else:
                 image_name = line[2] + '.jpg'
             image_path = f"{line[1]}/{image_name}"
-            print(image_path)
+            print(line)
             if os.path.exists(image_path):
                 state, _ = get_state_score(image_path)
                 u_sql = f"""UPDATE judge_state_data
@@ -380,9 +386,77 @@ def status_annotation_from_judge_state_data():
             cursor.execute(u_sql)
             # 提交事务
             conn.commit()
+
+        if num < 100:
+            break
+
+    # 关闭游标
+    cursor.close()
+    # 关闭数据库连接
+    conn.close()
+
+
+def temp_update_jpg():
+    """更新文件名称"""
+    s_sql = """
+SELECT id, image_name
+FROM judge_state_data 
+WHERE image_name NOT LIKE '%.jpg'
+    """
+    # 建立与数据库的连接
+    conn = sqlite3.connect(r'C:\Users\ntbgy\PycharmProjects\ai-play-wzry\data\AiPlayWzryDb.db')
+    # 创建游标对象
+    cursor = conn.cursor()
+    cursor.execute(s_sql)
+    data = cursor.fetchall()
+    for line in data:
+        print(line)
+        judge_state_json = {f"{line[1] + '.jpg'}": "普通"}
+        judge_state_json = json.dumps(judge_state_json, ensure_ascii=False)
+        u_sql = f"""
+UPDATE judge_state_data
+SET image_name='{line[1] + ".jpg"}', judge_state_json='{judge_state_json}', update_time='{get_now()}'
+WHERE id={line[0]}
+        """
+        # 执行 SQL 命令
+        cursor.execute(u_sql)
+        # 提交事务
+        conn.commit()
+
         # 关闭游标
-        cursor.close()
-        # 关闭数据库连接
-        conn.close()
+    cursor.close()
+    # 关闭数据库连接
+    conn.close()
+
+
+def temp_update_jpg_2():
+    """"
+    更新判断文件是否存在
+    """
+    s_sql = """SELECT id,root_path,image_name FROM judge_state_data WHERE exist = 'False'
+    """
+    # 建立与数据库的连接
+    conn = sqlite3.connect(r'C:\Users\ntbgy\PycharmProjects\ai-play-wzry\data\AiPlayWzryDb.db')
+    # 创建游标对象
+    cursor = conn.cursor()
+    cursor.execute(s_sql)
+    data = cursor.fetchall()
+    for line in data:
+        if os.path.exists('/'.join(line[1:])):
+            print(line)
+            u_sql = f"""
+    UPDATE judge_state_data
+    SET exist='True'
+    WHERE id={line[0]}
+            """
+            # 执行 SQL 命令
+            cursor.execute(u_sql)
+            # 提交事务
+            conn.commit()
+
+    # 关闭游标
+    cursor.close()
+    # 关闭数据库连接
+    conn.close()
 if __name__ == '__main__':
     status_annotation_from_judge_state_data()

@@ -1,5 +1,4 @@
 import math
-import os.path
 
 import numpy as np
 import torch
@@ -8,7 +7,6 @@ import torch.nn.functional as F
 import torchvision
 from PIL import Image
 
-import json
 from common import Transformer
 from common.Batch import create_masks
 from common.Sublayers import 全连接层
@@ -54,36 +52,34 @@ def random_dic(dicts):
 model_判断状态 = Transformer(6, 768, 2, 12, 0.0, 6 * 6 * 2048).cuda(device)
 optimizer = torch.optim.Adam(model_判断状态.parameters(), lr=6.25e-5, betas=(0.9, 0.98), eps=1e-9)
 路径json = r'E:\ai-play-wzry\判断数据样本\判断新.json'
-全部数据 = {}
+
 状态列表 = []
 for K in 状态词典B:
     状态列表.append(K)
-with open(路径json, encoding='utf-8') as f:
-    while True:
-        df = f.readline()
-        df = df.replace('\'', '\"')
-        if df == "":
-            break
-        单元 = json.loads(df)
-        for key in 单元:
-            全部数据[key] = 单元[key]
+s_sql = """SELECT id,root_path,image_name,state_old 
+FROM judge_state_data WHERE exist = 'True'
+ORDER BY RANDOM()
+"""
+# 建立与数据库的连接
+import sqlite3
+
+conn = sqlite3.connect(r'C:\Users\ntbgy\PycharmProjects\ai-play-wzry\data\AiPlayWzryDb.db')
+# 创建游标对象
+cursor = conn.cursor()
+cursor.execute(s_sql)
+全部数据 = cursor.fetchall()
+# 关闭游标
+cursor.close()
+# 关闭数据库连接
+conn.close()
 
 状态 = np.ones((1,), dtype='int64')
 for i in range(100):
-    打乱顺序 = random_dic(全部数据)
-    for key in 打乱顺序:
-        状态编号 = 状态词典B[全部数据[key]]
+    for line in 全部数据:
+        状态编号 = 状态词典B[line[-1]]
         状态[0] = 状态编号
         目标输出 = torch.from_numpy(状态).cuda(device)
-        if '.jpg' in key:
-            图片路径 = r'E:\ai-play-wzry\判断数据样本\\' + key
-        else:
-            图片路径 = r'E:\ai-play-wzry\判断数据样本\\' + key + '.jpg'
-        if os.path.isfile(图片路径):
-            img = Image.open(图片路径)
-        else:
-            img = Image.open(
-                r'E:\ai-play-wzry\训练数据样本\未用\\' + key.split('_')[0] + '\\' + key.split('_')[1] + '.jpg')
+        img = Image.open(line[1] + '/' + line[2])
         img2 = np.array(img)
         img2 = torch.from_numpy(img2).cuda(device).unsqueeze(0).permute(0, 3, 2, 1).float() / 255
         _, out = resnet101(img2)
@@ -99,8 +95,8 @@ for i in range(100):
         loss = F.cross_entropy(实际输出, 目标输出.contiguous().view(-1), ignore_index=-1)
         loss.backward()
         optimizer.step()
-        print('轮', i + 1, '实际输出', 状态列表[抽样np[0, 0, 0, 0]], '目标输出', 全部数据[key], loss)
-        if (i + 1) % 25 == 0:
-            torch.save(model_判断状态.state_dict(),
-                       f"E:/ai-play-wzry/weights/temp/model_weights_judgment_state_{i + 1}.pth")
+        print('轮', i + 1, '实际输出', 状态列表[抽样np[0, 0, 0, 0]], '目标输出', line[-1])
+    if (i + 1) % 25 == 0:
+        torch.save(model_判断状态.state_dict(),
+                   f"E:/ai-play-wzry/weights/temp/model_weights_judgment_state_{i + 1}.pth")
     torch.save(model_判断状态.state_dict(), 判断状态模型地址)

@@ -27,7 +27,16 @@ for 号 in dirnames:
     路径json = 操作记录 + '/' + 号 + '/_操作数据.json'
     numpy数组路径 = 操作记录 + '/' + 号 + '/图片_操作预处理数据2.npz'
     # 如果已经处理过了就不用重复处理了
-    if os.path.isfile(numpy数组路径):
+    if (os.path.isfile(numpy数组路径)
+            and 号 not in ("""
+1726124130
+1726153077
+1726125121
+1726246662
+1726245819
+1726125935
+""")
+    ):
         continue
 
     图片张量 = torch.Tensor(0)

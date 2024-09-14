@@ -6,7 +6,6 @@ from airtest.core.api import *
 from pynput.keyboard import Key, Listener
 from pywinauto import Application
 
-import json
 from common import *
 from common.Batch import create_masks
 from common.MyMNTDevice import MyMNTDevice
@@ -404,7 +403,7 @@ def start_game(dir_path):
     os.chdir(dir_path)
 
 
-def single_run(dir_path, device_id, scrcpy_windows_name, flag_file_name):
+def single_run(device_id, scrcpy_windows_name, flag_file_name):
     """
     运行单局游戏
     """
@@ -442,16 +441,21 @@ def runs(dir_path, device_id, scrcpy_windows_name, flag_file_name):
     """
     # 防止还没开始就结束了
     global sp
-    # 打开scrcpy
-    th1 = threading.Thread(target=scrcpy)
-    # 将线程设置为守护线程（daemon = True），当主线程结束时，守护线程会自动退出。
-    th1.daemon = True
-    th1.start()
-    for i in range(1, 3 + 1):
+
+    # # 打开scrcpy
+    # th1 = threading.Thread(target=scrcpy)
+    # # 将线程设置为守护线程（daemon = True），当主线程结束时，守护线程会自动退出。
+    # th1.daemon = True
+    # th1.start()
+
+    for i in range(1, 24 + 1):
         logger.info(f'第{i}局游戏开始！')
+        # 防止还没开始就结束了
         sp.set_stop(False)
+
         if os.path.exists(flag_file_name):
             os.remove(flag_file_name)
+
         # 进入游戏
         start_game(dir_path)
         # AI打游戏
@@ -466,10 +470,10 @@ def runs(dir_path, device_id, scrcpy_windows_name, flag_file_name):
         logger.info('检测游是否已结束线程done')
         logger.info(f'第{i}局游戏结束！')
 
-    app = Application(backend="uia").connect(title=scrcpy_windows_name)
-    main_window = app.window(title_re=scrcpy_windows_name)
-    main_window.close()
-    logger.info('关闭scrcpy窗口done')
+    # app = Application(backend="uia").connect(title=scrcpy_windows_name)
+    # main_window = app.window(title_re=scrcpy_windows_name)
+    # main_window.close()
+    # logger.info('关闭scrcpy窗口done')
 
 if __name__ == '__main__':
     import logging
@@ -501,5 +505,5 @@ if __name__ == '__main__':
             logdir=True,
             devices=[airtest_devices]
         )
-    single_run(dir_path, device_id, scrcpy_windows_name, flag_file_name)
-    # runs(dir_path, device_id, scrcpy_windows_name, flag_file_name)
+    # single_run(dir_path, device_id, scrcpy_windows_name, flag_file_name)
+    runs(dir_path, device_id, scrcpy_windows_name, flag_file_name)
