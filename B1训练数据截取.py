@@ -372,7 +372,7 @@ def check_game_status(flag_file_name):
         if image_path is None:
             continue
         txt = get_img_txt(image_path)
-        keywords = ['返回大厅', '再来一局', '继续', '胜利', '失败', '请选择']
+        keywords = ['返回大厅', '再来一局', '继续', '胜利', '失败', '请选择', '皮肤']
         if any(keyword in txt for keyword in keywords):
             logger.info("检测到游戏结束")
             sp.set_stop(True)
@@ -448,7 +448,7 @@ def runs(dir_path, device_id, scrcpy_windows_name, flag_file_name):
     # th1.daemon = True
     # th1.start()
 
-    for i in range(1, 24 + 1):
+    for i in range(1, 3 * 2+ 1):
         logger.info(f'第{i}局游戏开始！')
         # 防止还没开始就结束了
         sp.set_stop(False)
@@ -469,6 +469,9 @@ def runs(dir_path, device_id, scrcpy_windows_name, flag_file_name):
         th3.join()
         logger.info('检测游是否已结束线程done')
         logger.info(f'第{i}局游戏结束！')
+        logger.debug('等待一分钟！')
+        print('\n' * 5)
+        time.sleep(60)
 
     # app = Application(backend="uia").connect(title=scrcpy_windows_name)
     # main_window = app.window(title_re=scrcpy_windows_name)

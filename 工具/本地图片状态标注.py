@@ -459,4 +459,4 @@ def temp_update_jpg_2():
     # 关闭数据库连接
     conn.close()
 if __name__ == '__main__':
-    status_annotation_from_judge_state_data()
+    status_annotation_from_training_full_data()

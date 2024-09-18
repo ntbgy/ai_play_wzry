@@ -14,11 +14,16 @@ class ColoredFormatter(logging.Formatter):
     decollator_2 = Style.NORMAL + Fore.RED + ' - '
     levelname = Style.BRIGHT + Fore.BLUE + '%(levelname)-8s'
     FORMATS = {
-        logging.DEBUG: asctime + decollator + levelname + decollator + code_line + decollator_2 + Style.DIM + Fore.WHITE + '%(message)s' + Style.RESET_ALL,
-        logging.INFO: asctime + decollator + levelname + decollator + code_line + decollator_2 + Style.NORMAL + Fore.GREEN + '%(message)s' + Style.RESET_ALL,
-        logging.WARNING: asctime + decollator + levelname + decollator + code_line + decollator_2 + Style.RESET_ALL + Fore.YELLOW + '%(message)s' + Style.RESET_ALL,
-        logging.ERROR: asctime + decollator + levelname + decollator + code_line + decollator_2 + Style.BRIGHT + Fore.RED + '%(message)s' + Style.RESET_ALL,
-        logging.CRITICAL: asctime + decollator + levelname + decollator + code_line + decollator_2 + Style.BRIGHT + Fore.RED + '%(message)s' + Style.RESET_ALL
+        logging.DEBUG: asctime + decollator + levelname + decollator + code_line + decollator_2 +
+                       Style.DIM + Fore.WHITE + '%(message)s' + Style.RESET_ALL,
+        logging.INFO: asctime + decollator + levelname + decollator + code_line + decollator_2 +
+                      Style.NORMAL + Fore.GREEN + '%(message)s' + Style.RESET_ALL,
+        logging.WARNING: asctime + decollator + levelname + decollator + code_line + decollator_2 +
+                         Style.RESET_ALL + Fore.YELLOW + '%(message)s' + Style.RESET_ALL,
+        logging.ERROR: asctime + decollator + levelname + decollator + code_line + decollator_2 +
+                       Style.BRIGHT + Fore.RED + '%(message)s' + Style.RESET_ALL,
+        logging.CRITICAL: asctime + decollator + levelname + decollator + code_line + decollator_2 +
+                          Style.BRIGHT + Fore.RED + '%(message)s' + Style.RESET_ALL
     }
 
     def format(self, record):

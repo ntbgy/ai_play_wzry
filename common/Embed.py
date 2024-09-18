@@ -48,7 +48,7 @@ class PositionalEncoder(nn.Module):
     def forward(self, x):
         """在较新的 PyTorch 版本中，不需要使用 Variable，直接使用张量操作。如果要防止某些张量被计算梯度，可以使用 .detach() 方法。"""
         # make embeddings relatively larger
-        x = x * math.sqrt(self.d_model)
+        x *= math.sqrt(self.d_model)
         # add constant to embedding
         seq_len = x.size(1)
         pe = self.pe[:, :seq_len].detach()
@@ -87,7 +87,6 @@ class Embedder2(nn.Module):
                 'Shape of weight does not match num_embeddings and embedding_dim'
             self.weight = nn.Parameter(_weight)
         self.sparse = sparse
-        a = 0
 
     def reset_parameters(self):
         nn.init.normal_(self.weight)

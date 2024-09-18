@@ -87,14 +87,14 @@ def 写出词标号引索(总词表, 词_数表路径, 数_词表路径):
     i = 0
     j = 0
     for 词表 in 总词表:
-        j = j + 1
+        j += 1
         for 字符 in 词表:
 
             if 字符 not in 标号_字符:
                 标号_字符.append(字符)
                 字符_到_标号[字符] = i
                 标号_到_字符[i] = 字符
-                i = i + 1
+                i += 1
         if j % 10000 == 0:
             print(i, 标号_到_字符[i - 1], j / len(总词表))
 
@@ -160,7 +160,7 @@ def 生成训练用numpy数组(输入表单, 词_数表, numpy数组路径):
             表_2.append(np.array(表_3[1:]))
         if i % 1000 == 0:
             print("数据转化为numpy数组完成度百分比{}".format(i / len(输入表单) * 100))
-        i = i + 1
+        i += 1
     print("数据转化为numpy数组完成。")
 
     输入np = np.array(表_1)
@@ -177,7 +177,7 @@ def 生成测试用numpy数组(输入表单, 词_数表):
         else:
             表_1.append(14999)
     输入np = np.array(表_1)
-    return (输入np)
+    return 输入np
 
 
 def 生成训练用numpy数组_A(输入表单, 词_数表, numpy数组路径):
@@ -235,7 +235,7 @@ def 生成训练用numpy数组_A(输入表单, 词_数表, numpy数组路径):
             表_2.append(np.array(表_3[1:]))
         if i % 1000 == 0:
             print("数据转化为numpy数组完成度百分比{}".format(i / len(输入表单) * 100))
-        i = i + 1
+        i += 1
     print("数据转化为numpy数组完成。")
 
     输入np = np.array(表_1)
@@ -292,7 +292,7 @@ def 生成测试用numpy数组_A(输入表单, 词_数表):
                     else:
                         表_3.append(14999)
     输入np = np.array(表_3)
-    return (输入np)
+    return 输入np
 
 
 def nopeak_mask(size, device):

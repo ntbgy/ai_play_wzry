@@ -30,4 +30,4 @@ class Decoder(nn.Module):
 
 
 def get_clones(module, N):
-    return nn.ModuleList([copy.deepcopy(module) for i in range(N)])
+    return nn.ModuleList([copy.deepcopy(module) for _ in range(N)])
