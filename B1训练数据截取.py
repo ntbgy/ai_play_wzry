@@ -168,7 +168,7 @@ def 发送指令(pyminitouch_device, 指令, sleep_time=0):
 
 
 # noinspection PyUnboundLocalVariable
-def 训练数据截取(device_id, scrcpy_windows_name, 手工介入=True, flag_file_name='stop_flag.txt'):
+def 训练数据截取(device_id, scrcpy_windows_name, 手工介入=False, flag_file_name='stop_flag.txt'):
     global 操作列, sp, AI打开
     global 攻击态, 补刀态, 推塔态
     AI打开 = True
@@ -218,24 +218,21 @@ def 训练数据截取(device_id, scrcpy_windows_name, 手工介入=True, flag_f
                     AI打开 = False
                     logger.error('取图失败！')
                     break
+                save_image_path = save_image_directory + '{}.jpg'.format(str(i))
+                imgA.save(save_image_path)
+                sp.set_image_path(save_image_path)
 
                 计时开始 = time.time()
-                # 动作 = None
+                img = np.array(imgA)
+                img = torch.from_numpy(img).cuda(device).unsqueeze(0).permute(0, 3, 2, 1) / 255
+                _, out = resnet101(img)
+
                 if 图片张量.shape[0] == 0:
-                    img = np.array(imgA)
-                    img = torch.from_numpy(img).cuda(device).unsqueeze(0).permute(0, 3, 2, 1) / 255
-                    _, out = resnet101(img)
                     图片张量 = out.reshape(1, 6 * 6 * 2048)
                 elif 图片张量.shape[0] < 300:
-                    img = np.array(imgA)
-                    img = torch.from_numpy(img).cuda(device).unsqueeze(0).permute(0, 3, 2, 1) / 255
-                    _, out = resnet101(img)
                     图片张量 = torch.cat((图片张量, out.reshape(1, 6 * 6 * 2048)), 0)
                     操作序列 = np.append(操作序列, 动作)
                 else:
-                    img = np.array(imgA)
-                    img = torch.from_numpy(img).cuda(device).unsqueeze(0).permute(0, 3, 2, 1) / 255
-                    _, out = resnet101(img)
                     图片张量 = 图片张量[1:300, :]
                     操作序列 = 操作序列[1:300]
                     操作序列 = np.append(操作序列, 动作)
@@ -259,10 +256,6 @@ def 训练数据截取(device_id, scrcpy_windows_name, 手工介入=True, flag_f
                 #     pyminitouch_device.发送(操作查询词典['加三技能'])
                 #     # pyminitouch_device.发送(操作查询词典['移动停'])
                 #     time.sleep(0.01)
-
-                save_image_path = save_image_directory + '{}.jpg'.format(str(i))
-                imgA.save(save_image_path)
-                sp.set_image_path(save_image_path)
 
                 操作词典['图片号'] = str(i)
                 手动移动指令 = 处理方向()
@@ -379,6 +372,7 @@ def check_game_status(flag_file_name):
             break
         time.sleep(60)
 
+# 打开scrcpy
 def scrcpy(s='--max-size 960 --always-on-top'):
     """
     启动scrcpy
@@ -448,7 +442,7 @@ def runs(dir_path, device_id, scrcpy_windows_name, flag_file_name):
     # th1.daemon = True
     # th1.start()
 
-    for i in range(1, 3 * 2+ 1):
+    for i in range(1, 3 * 1 + 1):
         logger.info(f'第{i}局游戏开始！')
         # 防止还没开始就结束了
         sp.set_stop(False)
@@ -459,7 +453,7 @@ def runs(dir_path, device_id, scrcpy_windows_name, flag_file_name):
         # 进入游戏
         start_game(dir_path)
         # AI打游戏
-        th2 = threading.Thread(target=训练数据截取, args=(device_id, scrcpy_windows_name, True, flag_file_name))
+        th2 = threading.Thread(target=训练数据截取, args=(device_id, scrcpy_windows_name, False, flag_file_name))
         th2.start()
         # 检测游戏是否结束，不停检测会卡死，emmmm
         th3 = threading.Thread(target=check_game_status, args=(flag_file_name,))
@@ -510,3 +504,4 @@ if __name__ == '__main__':
         )
     # single_run(dir_path, device_id, scrcpy_windows_name, flag_file_name)
     runs(dir_path, device_id, scrcpy_windows_name, flag_file_name)
+    # 训练数据截取(device_id, scrcpy_windows_name, False, flag_file_name)
