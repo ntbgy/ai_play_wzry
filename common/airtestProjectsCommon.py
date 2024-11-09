@@ -12,7 +12,6 @@ from airtest.core.api import *
 from paddleocr import PaddleOCR
 
 from common import get_dirs_path
-from common.sparkai_api import get_sparkai_api_answer
 
 
 def ocr_now_touch(target_text, dir_path: any = None):
@@ -154,23 +153,6 @@ def os_chdir_modules(modules: str):
     os.chdir(
         os.path.dirname(
             os.path.abspath(sys.modules[modules].__file__)))
-
-
-def do_multiple_choice_questions(question, dir_path):
-    question = f"""
-    注意事项：回答内容必须和问题选项完全一致，且不需要解析
-    问题：{question}
-        """.strip()
-    question = '\n'.join([item.strip() for item in question.split('\n')])
-    answer = get_sparkai_api_answer(question, True)
-    for item in question.split('\n'):
-        if item in answer:
-            res = ocr_now_touch(item, dir_path)
-            sleep(1)
-            print(f"点击：{item}, 点击结果：{res}")
-            return res
-    else:
-        return False
 
 
 if __name__ == '__main__':

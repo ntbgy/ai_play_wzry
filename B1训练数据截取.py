@@ -442,7 +442,7 @@ def runs(dir_path, device_id, scrcpy_windows_name, flag_file_name):
     # th1.daemon = True
     # th1.start()
 
-    for i in range(1, 3 * 1 + 1):
+    for i in range(1, 3 * 16 + 1):
         logger.info(f'第{i}局游戏开始！')
         # 防止还没开始就结束了
         sp.set_stop(False)
