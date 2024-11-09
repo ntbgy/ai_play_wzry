@@ -502,6 +502,6 @@ if __name__ == '__main__':
             logdir=True,
             devices=[airtest_devices]
         )
-    # single_run(dir_path, device_id, scrcpy_windows_name, flag_file_name)
-    runs(dir_path, device_id, scrcpy_windows_name, flag_file_name)
+    single_run(device_id, scrcpy_windows_name, flag_file_name)
+    # runs(dir_path, device_id, scrcpy_windows_name, flag_file_name)
     # 训练数据截取(device_id, scrcpy_windows_name, False, flag_file_name)
