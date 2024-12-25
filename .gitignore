@@ -1,6 +1,8 @@
 .idea/
 weights/
 log/
+双模态切换辅助跟随/imgCatch/
+强化学习/data/
 log.html
 temp.py
 
