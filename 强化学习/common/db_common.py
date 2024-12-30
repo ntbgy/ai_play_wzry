@@ -4,7 +4,7 @@ from common.my_logger import logger
 
 
 def get_table_data(
-        db_name=r'C:\Users\ntbgy\PycharmProjects\ai-play-wzry\data\AiPlayWzryDb.db',
+        db_name=r'C:\Users\ntbgy\PycharmProjects\ai-play-wzry\强化学习\data\AiPlayWzryDb.db',
         sql=None,
         table_name='training_data',
         condition=None

@@ -14,13 +14,16 @@ from paddleocr import PaddleOCR
 from common import get_dirs_path
 
 
-def ocr_now_touch(target_text, dir_path: any = None):
+def ocr_now_touch(target_text, dir_path: any = None, show_result: bool = False, sleep_time: int = 1):
     if dir_path is None:
         pic_path = Path(os.getcwd()) / 'log/now.png'
     else:
         pic_path = Path(str(dir_path)) / 'log/now.png'
     snapshot(filename='now.png')
-    return ocr_touch(target_text, pic_path)
+    res = ocr_touch(target_text, pic_path, show_result)
+    if res:
+        sleep(sleep_time)
+    return res
 
 
 def get_now_img_txt(dir_path: any = None):
@@ -32,7 +35,7 @@ def get_now_img_txt(dir_path: any = None):
     return get_img_txt(pic_path)
 
 
-def ocr_touch(target_text, pic_path):
+def ocr_touch(target_text, pic_path, show_result: bool = False):
     # 使用PaddleOCR识别图片文字
     ocr = PaddleOCR()
     ocr_result = ocr.ocr(img=str(pic_path), cls=True)
@@ -59,10 +62,11 @@ def ocr_touch(target_text, pic_path):
         touch(target_coords)
         return True
     else:
-        print('#' * 50)
-        print(f"未找到目标文字：{target_text}")
-        print(f"识别文字：{txt}")
-        print('#' * 50)
+        if show_result:
+            print('#' * 50)
+            print(f"未找到目标文字：{target_text}")
+            print(f"识别文字：{txt}")
+            print('#' * 50)
         return False
 
 

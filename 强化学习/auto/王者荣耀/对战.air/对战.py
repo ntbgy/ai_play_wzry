@@ -107,11 +107,12 @@ def 离线1v1():
 
 def 离线5V5(dir_path):
     # 需要先手工登录一个账号，退出了不行~
+    ocr_now_touch('胜利', dir_path, sleep_time=3)
+    ocr_now_touch('失败', dir_path, sleep_time=3)
+    ocr_now_touch('继续', dir_path, sleep_time=3)
+    ocr_now_touch('返回大厅', dir_path, sleep_time=3)
     txt = get_now_img_txt(dir_path)
-    if '返回大厅' in txt:
-        ocr_now_touch('返回大厅', dir_path)
-        sleep(2)
-    elif '开始游戏' in txt:
+    if '开始游戏' in txt:
         # touch(Template(filename='屏幕截图 2024-09-06 082752.png'))
         touch((2925, 399))
         sleep(2)

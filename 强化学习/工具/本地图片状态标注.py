@@ -183,7 +183,7 @@ def select_data(cursor, name):
 
 def calculate_training_data_score():
     # 建立与数据库的连接
-    conn = sqlite3.connect(r'C:\Users\ntbgy\PycharmProjects\ai-play-wzry\data\AiPlayWzryDb.db')
+    conn = sqlite3.connect(r'C:\Users\ntbgy\PycharmProjects\ai-play-wzry\强化学习\data\AiPlayWzryDb.db')
     # 创建游标对象
     cursor = conn.cursor()
     root_path = r"E:\ai-play-wzry\训练数据样本\未用"
@@ -219,7 +219,7 @@ def status_annotation_from_training_full_data():
     """"计算训练数据状态与得分"""
     while True:
         # 建立与数据库的连接
-        conn = sqlite3.connect(r'C:\Users\ntbgy\PycharmProjects\ai-play-wzry\data\AiPlayWzryDb.db')
+        conn = sqlite3.connect(r'C:\Users\ntbgy\PycharmProjects\ai-play-wzry\强化学习\data\AiPlayWzryDb.db')
         # 创建游标对象
         cursor = conn.cursor()
         s_sql = """
@@ -266,7 +266,7 @@ def status_annotation_from_db():
     model_判断状态.cuda(device)
 
     # 建立与数据库的连接
-    conn = sqlite3.connect(r'C:\Users\ntbgy\PycharmProjects\ai-play-wzry\data\AiPlayWzryDb.db')
+    conn = sqlite3.connect(r'C:\Users\ntbgy\PycharmProjects\ai-play-wzry\强化学习\data\AiPlayWzryDb.db')
     # 创建游标对象
     cursor = conn.cursor()
     s_sql = """
@@ -332,7 +332,7 @@ WHERE id={line[0]};
 def status_annotation_from_judge_state_data():
     """重新计算判断状态，用于检查模型判断结果"""
     # 建立与数据库的连接
-    conn = sqlite3.connect(r'C:\Users\ntbgy\PycharmProjects\ai-play-wzry\data\AiPlayWzryDb.db')
+    conn = sqlite3.connect(r'C:\Users\ntbgy\PycharmProjects\ai-play-wzry\强化学习\data\AiPlayWzryDb.db')
     # 创建游标对象
     cursor = conn.cursor()
     s_sql = """
@@ -404,7 +404,7 @@ FROM judge_state_data
 WHERE image_name NOT LIKE '%.jpg'
     """
     # 建立与数据库的连接
-    conn = sqlite3.connect(r'C:\Users\ntbgy\PycharmProjects\ai-play-wzry\data\AiPlayWzryDb.db')
+    conn = sqlite3.connect(r'C:\Users\ntbgy\PycharmProjects\ai-play-wzry\强化学习\data\AiPlayWzryDb.db')
     # 创建游标对象
     cursor = conn.cursor()
     cursor.execute(s_sql)
@@ -436,7 +436,7 @@ def temp_update_jpg_2():
     s_sql = """SELECT id,root_path,image_name FROM judge_state_data WHERE exist = 'False'
     """
     # 建立与数据库的连接
-    conn = sqlite3.connect(r'C:\Users\ntbgy\PycharmProjects\ai-play-wzry\data\AiPlayWzryDb.db')
+    conn = sqlite3.connect(r'C:\Users\ntbgy\PycharmProjects\ai-play-wzry\强化学习\data\AiPlayWzryDb.db')
     # 创建游标对象
     cursor = conn.cursor()
     cursor.execute(s_sql)

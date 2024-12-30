@@ -1,5 +1,4 @@
 import json
-import os
 import sqlite3
 
 from common import get_now
@@ -14,7 +13,7 @@ with open(f'{root_path}/判断新.json', 'r', encoding='utf-8') as f:
 data = data.strip().split('\n')
 
 # 建立与数据库的连接
-conn = sqlite3.connect(r'C:\Users\ntbgy\PycharmProjects\ai-play-wzry\data\AiPlayWzryDb.db')
+conn = sqlite3.connect(r'C:\Users\ntbgy\PycharmProjects\ai-play-wzry\强化学习\data\AiPlayWzryDb.db')
 # 创建游标对象
 cursor = conn.cursor()
 

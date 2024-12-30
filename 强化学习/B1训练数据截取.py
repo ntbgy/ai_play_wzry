@@ -1,3 +1,4 @@
+import logging
 import sys
 import threading
 
@@ -15,6 +16,12 @@ from common.my_logger import logger
 from common.resnet_utils import myResnet
 from common.stop import stop
 from common.智能体 import 智能体
+
+# 设置日志级别
+logger_airtest = logging.getLogger("airtest")
+logger_ppocr = logging.getLogger("ppocr")
+logger_ppocr.setLevel(logging.CRITICAL)
+logger_airtest.setLevel(logging.CRITICAL)
 
 # threading.Lock是 Python 中threading模块提供的一种简单的线程同步机制，用于实现互斥锁（Mutex Lock）。
 # 当一个线程获取了锁（通过lock.acquire()方法）后，其他线程在尝试获取该锁时将被阻塞，直到锁被释放（通过lock.release()方法）。
@@ -442,7 +449,7 @@ def runs(dir_path, device_id, scrcpy_windows_name, flag_file_name):
     # th1.daemon = True
     # th1.start()
 
-    for i in range(1, 3 * 16 + 1):
+    for i in range(1, 2 * 24 * 3 + 1):
         logger.info(f'第{i}局游戏开始！')
         # 防止还没开始就结束了
         sp.set_stop(False)
@@ -473,7 +480,6 @@ def runs(dir_path, device_id, scrcpy_windows_name, flag_file_name):
     # logger.info('关闭scrcpy窗口done')
 
 if __name__ == '__main__':
-    import logging
     import os
     import threading
 
@@ -481,12 +487,6 @@ if __name__ == '__main__':
     from airtest.core.api import auto_setup
 
     from common.airtestProjectsCommon import clean_log
-
-    # 设置日志级别
-    logger_airtest = logging.getLogger("airtest")
-    logger_ppocr = logging.getLogger("ppocr")
-    logger_ppocr.setLevel(logging.ERROR)
-    logger_airtest.setLevel(logging.ERROR)
     # 清空存量日志
     clean_log()
 
@@ -503,5 +503,5 @@ if __name__ == '__main__':
             devices=[airtest_devices]
         )
     # single_run(device_id, scrcpy_windows_name, flag_file_name)
-    # runs(dir_path, device_id, scrcpy_windows_name, flag_file_name)
-    训练数据截取(device_id, scrcpy_windows_name, False, flag_file_name)
+    runs(dir_path, device_id, scrcpy_windows_name, flag_file_name)
+    # 训练数据截取(device_id, scrcpy_windows_name, False, flag_file_name)

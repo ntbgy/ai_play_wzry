@@ -63,7 +63,7 @@ ORDER BY RANDOM()
 # 建立与数据库的连接
 import sqlite3
 
-conn = sqlite3.connect(r'C:\Users\ntbgy\PycharmProjects\ai-play-wzry\data\AiPlayWzryDb.db')
+conn = sqlite3.connect(r'C:\Users\ntbgy\PycharmProjects\ai-play-wzry\强化学习\data\AiPlayWzryDb.db')
 # 创建游标对象
 cursor = conn.cursor()
 cursor.execute(s_sql)
