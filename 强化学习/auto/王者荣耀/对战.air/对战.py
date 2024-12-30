@@ -154,6 +154,24 @@ def 离线5V5(dir_path):
     print('开始离线5V5')
 
 
+def 已登录单人模式开始游戏(dir_path):
+    ocr_now_touch('对战', dir_path, sleep_time=2)
+    ocr_now_touch('王者峡谷', dir_path, sleep_time=2)
+    ocr_now_touch('人机', dir_path, sleep_time=2)
+    ocr_now_touch('单人模式', dir_path, sleep_time=1)
+    ocr_now_touch('倔强青铜', dir_path, sleep_time=1)
+    ocr_now_touch('开始练习', dir_path, sleep_time=3)
+    touch(Template(filename='后裔.png'))
+    sleep(2)
+    ocr_now_touch('确定', dir_path, sleep_time=1)
+    ocr_now_touch('确定', dir_path, sleep_time=10)
+
+
+def 已登录单人模式返回大厅(dir_path):
+    ocr_now_touch('继续', dir_path, sleep_time=2)
+    ocr_now_touch('继续', dir_path, sleep_time=2)
+    ocr_now_touch('继续', dir_path, sleep_time=2)
+    ocr_now_touch('返回大厅', dir_path, sleep_time=3)
 if __name__ == '__main__':
     # 设置日志级别
     logger_airtest = logging.getLogger("airtest")

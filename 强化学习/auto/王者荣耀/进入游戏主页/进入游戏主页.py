@@ -36,4 +36,3 @@ if __name__ == '__main__':
         devices=["android:///"]
     )
     进入游戏主页()
-    # touch(Template(r"tpl1724255354605.png", record_pos=(0.279, -0.163), resolution=(3200, 1440)))

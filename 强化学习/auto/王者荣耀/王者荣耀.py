@@ -8,6 +8,7 @@ from airtest.cli.parser import cli_setup
 from airtest.core.api import *
 from airtest.report.report import simple_report
 
+from auto.王者荣耀.每日领垃圾.领垃圾 import 领垃圾
 from auto.王者荣耀.进入游戏主页.进入游戏主页 import 进入游戏主页
 from common.airtestProjectsCommon import clean_log
 
@@ -28,7 +29,7 @@ def 王者荣耀(dir_path):
     进入游戏主页()
     # 执行自动化脚本
     os.chdir(os.path.dirname(os.path.abspath(sys.modules['auto.王者荣耀.每日领垃圾.领垃圾'].__file__)))
-    # 领垃圾(dir_path)
+    领垃圾(dir_path)
     # os.chdir(
     #     os.path.dirname(os.path.abspath(sys.modules['auto.王者荣耀.夫子的试炼.夫子的进阶试验'].__file__)))
     # 夫子的进阶试验(dir_path)
