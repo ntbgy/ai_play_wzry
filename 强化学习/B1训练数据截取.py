@@ -667,5 +667,6 @@ if __name__ == '__main__':
             logdir=True,
             devices=[airtest_devices]
         )
+    # runs(dir_path, device_id, scrcpy_windows_name, flag_file_name)
     singele_run_game(dir_path, device_id, scrcpy_windows_name, flag_file_name)
     # 手动训练数据截取(device_id, scrcpy_windows_name, True, flag_file_name)

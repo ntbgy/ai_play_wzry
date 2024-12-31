@@ -189,11 +189,4 @@ if __name__ == '__main__':
         )
     # 获取当前文件绝对路径
     dir_path = os.path.dirname(os.path.abspath(__file__))
-    try:
-        在线5V5(dir_path)
-    except:
-        pass
-    # 生成报告
-    simple_report(__file__, logpath=True, output=f"{dir_path}\\log\\log.html")
-    # 打开报告
-    # os.startfile(f"{dir_path}\\log\\log.html")
+    已登录单人模式返回大厅(dir_path)

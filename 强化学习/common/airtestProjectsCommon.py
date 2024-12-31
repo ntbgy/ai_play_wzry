@@ -4,7 +4,6 @@
 import os.path
 import shutil
 import sys
-from pathlib import Path
 
 import cv2
 import numpy as np
@@ -12,33 +11,25 @@ from airtest.core.api import *
 from paddleocr import PaddleOCR
 
 from common import get_dirs_path
+from common.auto_game import get_now_img
 
 
+# noinspection PyUnusedLocal
 def ocr_now_touch(target_text, dir_path: any = None, show_result: bool = False, sleep_time: int = 1):
-    if dir_path is None:
-        pic_path = Path(os.getcwd()) / 'log/now.png'
-    else:
-        pic_path = Path(str(dir_path)) / 'log/now.png'
-    snapshot(filename='now.png')
-    res = ocr_touch(target_text, pic_path, show_result)
+    res = ocr_touch(target_text, get_now_img(), show_result)
     if res:
         sleep(sleep_time)
     return res
 
-
+# noinspection PyUnusedLocal
 def get_now_img_txt(dir_path: any = None):
-    if dir_path is None:
-        pic_path = Path(os.getcwd()) / 'log/now.png'
-    else:
-        pic_path = Path(str(dir_path)) / 'log/now.png'
-    snapshot(filename='now.png')
-    return get_img_txt(pic_path)
+    return get_img_txt(get_now_img())
 
 
 def ocr_touch(target_text, pic_path, show_result: bool = False):
     # 使用PaddleOCR识别图片文字
     ocr = PaddleOCR()
-    ocr_result = ocr.ocr(img=str(pic_path), cls=True)
+    ocr_result = ocr.ocr(img=pic_path, cls=True)
     # 遍历识别结果，找到目标文字的坐标
     target_coords = None
     txt = ''
@@ -51,7 +42,7 @@ def ocr_touch(target_text, pic_path, show_result: bool = False):
                 # 获取文字的坐标（中心点）
                 x1, y1 = word_info[0][0]
                 x2, y2 = word_info[0][2]
-                target_coords = ((x1 + x2) / 2, (y1 + y2) / 2)
+                target_coords = (3.33 * (x1 + x2) / 2, 3.33 * (y1 + y2) / 2)
                 break
         if target_coords:
             break

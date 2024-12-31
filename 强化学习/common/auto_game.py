@@ -168,7 +168,7 @@ def get_window_image(hwnd):
         (bmpinfo['bmWidth'], bmpinfo['bmHeight']),
         bmpstr, 'raw', 'BGRX', 0, 1)
 
-    image.save(f'imgCatch/{time.time()}.png')
+    # image.save(f'imgCatch/{time.time()}.png')
 
     # 将 PIL Image 对象转换为 numpy.ndarray 类型
     image_np = np.asarray(image)
