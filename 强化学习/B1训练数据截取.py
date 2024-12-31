@@ -12,7 +12,7 @@ from common.MyMNTDevice import MyMNTDevice
 from common.airtestProjectsCommon import get_img_txt
 from common.append_record import append_record
 from common.auto_game import get_now_img
-from common.env import training_data_save_directory, project_root_path, 操作查询词典, 操作词典
+from common.env import training_data_save_directory, project_root_path, 操作查询词典, 操作词典, scrcpy_windows_name
 from common.handle_direction import handle_direction
 from common.my_logger import logger
 from common.resnet_utils import myResnet
@@ -656,7 +656,6 @@ if __name__ == '__main__':
 
     dir_path = os.path.dirname(os.path.abspath(__file__))
     device_id = 'emulator-5554'
-    scrcpy_windows_name = "scrcpy投屏"
     flag_file_name = 'stop_flag.txt'
     airtest_devices = "android:///"
     # 连接设备

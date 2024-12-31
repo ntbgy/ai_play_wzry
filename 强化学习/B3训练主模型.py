@@ -2,20 +2,17 @@ from common import *
 from common import 读出引索, Transformer
 from common.Batch import create_masks
 from common.TransformerConfig import TransformerConfig
-from common.env import 状态词典, 状态词典B, training_data_save_directory
+from common.env import *
 from common.total_seconds import total_seconds
 from common.智能体 import 智能体
 
 状态列表 = [K for K in 状态词典B]
-训练数据保存目录 = 'E:/ai-play-wzry/训练数据样本/未用'
-if not os.path.exists(训练数据保存目录):
-    os.makedirs(训练数据保存目录)
+if not os.path.exists(training_data_save_directory):
+    os.makedirs(training_data_save_directory)
 dirs = list()
-for root, dirs, files in os.walk('E:/ai-play-wzry/训练数据样本/未用'):
+for root, dirs, files in os.walk(training_data_save_directory):
     if len(dirs) > 0:
         break
-词数词典路径 = "./json/词_数表.json"
-数_词表路径 = "./json/数_词表.json"
 if os.path.isfile(词数词典路径) and os.path.isfile(数_词表路径):
     词_数表, 数_词表 = 读出引索(词数词典路径, 数_词表路径)
 with open(词数词典路径, encoding='utf8') as f:
@@ -23,7 +20,7 @@ with open(词数词典路径, encoding='utf8') as f:
 device = torch.device("cuda:0" if (torch.cuda.is_available()) else "cpu")
 config = TransformerConfig()
 model_判断状态 = Transformer(6, 768, 2, 12, 0.0, 6 * 6 * 2048)
-model_判断状态.load_state_dict(torch.load('E:/ai-play-wzry/weights/model_weights_judgment_state.pth'))
+model_判断状态.load_state_dict(torch.load(判断状态模型地址))
 model_判断状态.cuda(device).requires_grad_(False)
 N = 15000  # 运行N次后学习
 条数 = 100
@@ -39,8 +36,9 @@ N = 15000  # 运行N次后学习
 游标大小 = 600
 树枝 = 1
 计数 = 0
-time_start = time.time()
+time_start_1 = time.time()
 for j in range(100):
+    time_start_2 = time.time()
     for 号 in dirs:
         预处理数据 = os.path.join(training_data_save_directory, 号, '图片_操作预处理数据2.npz')
         if os.path.isfile(预处理数据):
@@ -74,6 +72,7 @@ for j in range(100):
             循环 = True
             i = 0
             while 循环:
+                time_start_3 = time.time()
                 if (i + 1) * 树枝 < len(操作_分_表):
                     操作_分_枝 = np.array(操作_分_表[i * 树枝:(i + 1) * 树枝])
                     图片_分_枝 = np.array(图片_分_表[i * 树枝:(i + 1) * 树枝])
@@ -104,8 +103,9 @@ for j in range(100):
                     回报[计数] = 得分
                 智能体.监督强化学习(device, 状态, 回报, 动作, 动作可能性, 评价)
                 if 计数 % 1 == 0:
-                    total_seconds(time_start)
+                    total_seconds(time_start_3)
                 计数 += 1
                 i += 1
-    total_seconds(time_start)
+    total_seconds(time_start_2)
     智能体.保存模型(j + 1)
+total_seconds(time_start_1)
