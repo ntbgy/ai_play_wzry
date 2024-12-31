@@ -22,7 +22,7 @@ class 智能体:
         device = torch.device("cuda:0" if (torch.cuda.is_available()) else "cpu")
         from common.env import 模型名称
         config = TransformerConfig()
-        print(f"模型名称: {模型名称}")
+        # print(f"模型名称: {模型名称}")
         model = get_model(config, 130, 模型名称)
         model = model.cuda(device)
         self.动作 = model
@@ -41,7 +41,7 @@ class 智能体:
         self.数据集.读硬盘(文件名)
 
     def 保存模型(self, 轮号):
-        print(f'... 保存模型 {轮号}...')
+        # print(f'... 保存模型 {轮号}...')
         from common.env import 保存模型名称
         torch.save(self.动作.state_dict(), f'E:/ai-play-wzry/weights/{保存模型名称}')
         if not os.path.isdir(f'E:/ai-play-wzry/weights/temp'):
@@ -50,7 +50,7 @@ class 智能体:
                    f'E:/ai-play-wzry/weights/temp/{保存模型名称.replace(".pth", "")}_{轮号}.pth')
 
     def 载入模型(self):
-        print('... 载入模型 ...')
+        # print('... 载入模型 ...')
         self.动作.载入权重()
 
     def 选择动作(self, 状态, device, 传入动作, 手动=False):
@@ -94,7 +94,7 @@ class 智能体:
             总损失 = None
             for _ in range(self.轮数):
                 动作集, 旧_动作概率集, 评价集, 回报集, 完结集, 图片集合, 动作数组, 条目集 = self.数据集.提取数据()
-                print('回报集', 回报集[0:10])
+                # print('回报集', 回报集[0:10])
                 价值 = 评价集
 
                 优势函数值 = np.zeros(len(回报集), dtype=np.float32)
@@ -160,7 +160,7 @@ class 智能体:
                     总损失.backward()
                     self.优化函数.step()
                 # self.优化函数_评论.step()
-                print('总损失', 总损失)
+                # print('总损失', 总损失)
 
         self.数据集.清除数据()
         self.文件名集 = []
@@ -221,7 +221,7 @@ class 智能体:
             动作损失 = 动作损失.mean()
             # 评价损失 = (总回报 - 评价结果) ** 2
             # 评价损失 = 评价损失.mean()
-            print(总回报[10:20], 新_动作概率s[:, 10:20].exp())
+            # print(总回报[10:20], 新_动作概率s[:, 10:20].exp())
 
             总损失 = 动作损失  # + 0.5 * 评价损失 - self.熵系数 * 熵损失
             # print(总损失)
@@ -288,7 +288,7 @@ class 智能体:
             动作损失 = 动作损失.mean()
             # 评价损失 = (总回报 - 评价结果) ** 2
             # 评价损失 = 评价损失.mean()
-            print(总回报[10:20], 新_动作概率s[:, 10:20].exp())
+            # print(总回报[10:20], 新_动作概率s[:, 10:20].exp())
 
             总损失 = 动作损失  # + 0.5 * 评价损失 - self.熵系数 * 熵损失
             # print(总损失)
@@ -308,7 +308,7 @@ class 智能体:
         self.优化函数.zero_grad()
         loss = F.cross_entropy(lin, 目标输出.contiguous().view(-1), ignore_index=-1)
         if 打印:
-            print(loss)
+            # print(loss)
             打印抽样数据(数_词表, 抽样np[0:1, :, :], 操作_分_torch[0, :])
         loss.backward()
 

@@ -1,7 +1,6 @@
 import logging
 
 from airtest.cli.parser import cli_setup
-from airtest.report.report import simple_report
 
 from common.airtestProjectsCommon import *
 
@@ -168,9 +167,9 @@ def 已登录单人模式开始游戏(dir_path):
 
 
 def 已登录单人模式返回大厅(dir_path):
-    ocr_now_touch('继续', dir_path, sleep_time=2)
-    ocr_now_touch('继续', dir_path, sleep_time=2)
-    ocr_now_touch('继续', dir_path, sleep_time=2)
+    ocr_now_touch('继续', dir_path, sleep_time=3)
+    ocr_now_touch('继续', dir_path, sleep_time=3)
+    ocr_now_touch('继续', dir_path, sleep_time=3)
     ocr_now_touch('返回大厅', dir_path, sleep_time=3)
 if __name__ == '__main__':
     # 设置日志级别

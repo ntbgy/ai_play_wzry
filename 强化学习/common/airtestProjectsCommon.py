@@ -97,7 +97,6 @@ def my_cv_imread(filepath):
 
 
 def get_img_txt(pic_path) -> str:
-    pic_path = str(pic_path)
     # 初始化PaddleOCR
     ocr = PaddleOCR(use_angle_cls=True, lang='ch')  # 可以根据需要选择语言
     # 使用PaddleOCR识别图片文字

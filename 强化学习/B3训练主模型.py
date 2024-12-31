@@ -2,7 +2,8 @@ from common import *
 from common import 读出引索, Transformer
 from common.Batch import create_masks
 from common.TransformerConfig import TransformerConfig
-from common.env import 状态词典, 状态词典B
+from common.env import 状态词典, 状态词典B, training_data_save_directory
+from common.total_seconds import total_seconds
 from common.智能体 import 智能体
 
 状态列表 = [K for K in 状态词典B]
@@ -41,7 +42,7 @@ N = 15000  # 运行N次后学习
 time_start = time.time()
 for j in range(100):
     for 号 in dirs:
-        预处理数据 = '训练数据样本/未用/' + 号 + '/图片_操作预处理数据2.npz'
+        预处理数据 = os.path.join(training_data_save_directory, 号, '图片_操作预处理数据2.npz')
         if os.path.isfile(预处理数据):
             npz文件 = np.load(预处理数据, allow_pickle=True)
             图片张量np, 操作序列 = npz文件["图片张量np"], npz文件["操作序列"]
@@ -102,13 +103,9 @@ for j in range(100):
                     得分 = 状态词典[状况]
                     回报[计数] = 得分
                 智能体.监督强化学习(device, 状态, 回报, 动作, 动作可能性, 评价)
-                print(device, 状态, 回报, 动作, 动作可能性, 评价)
                 if 计数 % 1 == 0:
-                    time_end = time.time()
-                    用时 = time_end - time_start
-                    print(用时)
+                    total_seconds(time_start)
                 计数 += 1
                 i += 1
-    if j != 0 and (j + 1) % 25 == 0:
-        # 频繁保存太慢了
-        智能体.保存模型(j + 1)
+    total_seconds(time_start)
+    智能体.保存模型(j + 1)

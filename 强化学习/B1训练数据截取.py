@@ -11,6 +11,7 @@ from common.Batch import create_masks
 from common.MyMNTDevice import MyMNTDevice
 from common.airtestProjectsCommon import get_img_txt
 from common.append_record import append_record
+from common.auto_game import get_now_img
 from common.env import training_data_save_directory, project_root_path, 操作查询词典, 操作词典
 from common.handle_direction import handle_direction
 from common.my_logger import logger
@@ -24,6 +25,9 @@ logger_airtest.setLevel(logging.CRITICAL)
 
 logger_ppocr = logging.getLogger("ppocr")
 logger_ppocr.setLevel(logging.CRITICAL)
+
+logger_my_logger = logging.getLogger("my_logger")
+logger_my_logger.setLevel(logging.INFO)
 
 # threading.Lock是 Python 中threading模块提供的一种简单的线程同步机制，用于实现互斥锁（Mutex Lock）。
 # 当一个线程获取了锁（通过lock.acquire()方法）后，其他线程在尝试获取该锁时将被阻塞，直到锁被释放（通过lock.release()方法）。
@@ -527,21 +531,16 @@ def 训练数据截取(device_id, scrcpy_windows_name, 手工介入=False, flag_
 def check_game_status(flag_file_name):
     global sp
     time.sleep(6 * 60)
-    logger_ppocr = logging.getLogger("ppocr")
-    logger_ppocr.setLevel(logging.ERROR)
     while True:
         if os.path.exists(flag_file_name):
             return
-        image_path = sp.get_image_path()
-        if image_path is None:
-            continue
-        txt = get_img_txt(image_path)
+        txt = get_img_txt(get_now_img())
         keywords = ['返回大厅', '再来一局', '继续', '胜利', '失败', '请选择', '皮肤']
         if any(keyword in txt for keyword in keywords):
             logger.info("检测到游戏结束")
             sp.set_stop(True)
             break
-        time.sleep(60)
+        time.sleep(15)
 
 
 
@@ -609,7 +608,7 @@ def singele_run_game(dir_path, device_id, scrcpy_windows_name, flag_file_name):
     """
     # 防止还没开始就结束了
     global sp
-    for i in range(1):
+    for i in range(1, 2):
         logger.info(f'第{i}局游戏开始！')
         # 防止还没开始就结束了
         sp.set_stop(False)
@@ -624,7 +623,7 @@ def singele_run_game(dir_path, device_id, scrcpy_windows_name, flag_file_name):
         from 对战 import 已登录单人模式开始游戏
         已登录单人模式开始游戏(dir_path)
         # AI打游戏
-        th2 = threading.Thread(target=训练数据截取, args=(device_id, scrcpy_windows_name, False, flag_file_name))
+        th2 = threading.Thread(target=训练数据截取, args=(device_id, scrcpy_windows_name, True, flag_file_name))
         th2.start()
         # 检测游戏是否结束，不停检测会卡死，emmmm
         th3 = threading.Thread(target=check_game_status, args=(flag_file_name,))
@@ -657,7 +656,7 @@ if __name__ == '__main__':
 
     dir_path = os.path.dirname(os.path.abspath(__file__))
     device_id = 'emulator-5554'
-    scrcpy_windows_name = "LIO-AN00"
+    scrcpy_windows_name = "scrcpy投屏"
     flag_file_name = 'stop_flag.txt'
     airtest_devices = "android:///"
     # 连接设备
