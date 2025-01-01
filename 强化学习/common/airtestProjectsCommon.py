@@ -42,7 +42,7 @@ def ocr_touch(target_text, pic_path, show_result: bool = False):
                 # 获取文字的坐标（中心点）
                 x1, y1 = word_info[0][0]
                 x2, y2 = word_info[0][2]
-                target_coords = (3.33 * (x1 + x2) / 2, 3.33 * (y1 + y2) / 2)
+                target_coords = (2 * (x1 + x2) / 2, 2 * (y1 + y2) / 2)
                 break
         if target_coords:
             break

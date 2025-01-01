@@ -27,7 +27,7 @@ logger_ppocr = logging.getLogger("ppocr")
 logger_ppocr.setLevel(logging.CRITICAL)
 
 logger_my_logger = logging.getLogger("my_logger")
-logger_my_logger.setLevel(logging.INFO)
+logger_my_logger.setLevel(logging.DEBUG)
 
 # threading.Lock是 Python 中threading模块提供的一种简单的线程同步机制，用于实现互斥锁（Mutex Lock）。
 # 当一个线程获取了锁（通过lock.acquire()方法）后，其他线程在尝试获取该锁时将被阻塞，直到锁被释放（通过lock.release()方法）。

@@ -7,3 +7,4 @@ adb kill-server
 adb start-server
 
 scrcpy --always-on-top --max-size=960 --window-title=scrcpy投屏
+scrcpy --window-title scrcpy投屏 --window-width=1600 --window-height=720
