@@ -592,9 +592,7 @@ def runs(dir_path, device_id, scrcpy_windows_name, flag_file_name):
         th3.join()
         logger.info('检测游是否已结束线程done')
         logger.info(f'第{i}局游戏结束！')
-        logger.debug('等待一分钟！')
         print('\n' * 5)
-        time.sleep(60)
 
     # app = Application(backend="uia").connect(title=scrcpy_windows_name)
     # main_window = app.window(title_re=scrcpy_windows_name)
@@ -620,8 +618,8 @@ def singele_run_game(dir_path, device_id, scrcpy_windows_name, flag_file_name):
         sys.path.append('auto/王者荣耀/对战.air')
         using('auto/王者荣耀/对战.air')
         # noinspection PyUnresolvedReferences
-        from 对战 import 已登录单人模式开始游戏
-        已登录单人模式开始游戏(dir_path)
+        from 对战 import 在线发育路1v1
+        在线发育路1v1(dir_path)
         # AI打游戏
         th2 = threading.Thread(target=训练数据截取, args=(device_id, scrcpy_windows_name, True, flag_file_name))
         th2.start()

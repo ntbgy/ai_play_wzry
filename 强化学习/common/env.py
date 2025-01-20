@@ -8,8 +8,8 @@ scrcpy_windows_name = "scrcpy投屏"
 # 模拟器比真机要慢亿点点
 sleep_time = 1
 load_weights = 'E:/ai-play-wzry/weights'
-模型名称 = 'model_weights_5v5.pth'
-保存模型名称 = 'model_weights_5v5.pth'
+模型名称 = 'model_weights_5v5_1v1.pth'
+保存模型名称 = 'model_weights_5v5_1v1.pth'
 training_data_save_directory = 'E:/ai-play-wzry/训练数据样本/未用'
 判断状态模型地址 = r"E:/ai-play-wzry/weights/model_weights_judgment_state.pth"
 状态词典 = {
