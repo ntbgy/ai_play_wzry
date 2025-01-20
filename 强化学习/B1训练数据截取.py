@@ -9,14 +9,13 @@ from pynput.keyboard import Key, Listener
 from common import *
 from common.Batch import create_masks
 from common.MyMNTDevice import MyMNTDevice
-from common.airtestProjectsCommon import get_img_txt
 from common.append_record import append_record
-from common.auto_game import get_now_img
+from common.check_game_status import check_game_status
 from common.env import training_data_save_directory, project_root_path, 操作查询词典, 操作词典, scrcpy_windows_name
 from common.handle_direction import handle_direction
 from common.my_logger import logger
 from common.resnet_utils import myResnet
-from common.stop import stop
+from common.stop import sp
 from common.智能体 import 智能体
 
 # 设置日志级别
@@ -27,7 +26,7 @@ logger_ppocr = logging.getLogger("ppocr")
 logger_ppocr.setLevel(logging.CRITICAL)
 
 logger_my_logger = logging.getLogger("my_logger")
-logger_my_logger.setLevel(logging.DEBUG)
+logger_my_logger.setLevel(logging.CRITICAL)
 
 # threading.Lock是 Python 中threading模块提供的一种简单的线程同步机制，用于实现互斥锁（Mutex Lock）。
 # 当一个线程获取了锁（通过lock.acquire()方法）后，其他线程在尝试获取该锁时将被阻塞，直到锁被释放（通过lock.release()方法）。
@@ -43,7 +42,7 @@ A键按下 = False
 D键按下 = False
 Q键按下 = False
 操作列 = []
-sp = stop()
+
 智能体 = 智能体(
     动作数=7,
     并行条目数=100,
@@ -150,7 +149,7 @@ def 手动训练数据截取(device_id, scrcpy_windows_name, 手工介入=True, 
             logger.error('发送失败')
             return False
 
-    global 操作列, sp, AI打开
+    global 操作列, AI打开
     global 攻击态, 补刀态, 推塔态
     AI打开 = True
     自动 = 0
@@ -345,7 +344,8 @@ def 训练数据截取(device_id, scrcpy_windows_name, 手工介入=False, flag_
             AI打开 = False
             logger.error('发送失败')
             return False
-    global 操作列, sp, AI打开
+
+    global 操作列, AI打开
     global 攻击态, 补刀态, 推塔态
     AI打开 = True
     自动 = 0
@@ -527,49 +527,25 @@ def 训练数据截取(device_id, scrcpy_windows_name, 手工介入=False, flag_
         pyminitouch_device.stop()
 
 
-# 检测游戏是否结束
-def check_game_status(flag_file_name):
-    global sp
-    time.sleep(6 * 60)
-    while True:
-        if os.path.exists(flag_file_name):
-            return
-        txt = get_img_txt(get_now_img())
-        keywords = ['返回大厅', '再来一局', '继续', '胜利', '失败', '请选择', '皮肤']
-        if any(keyword in txt for keyword in keywords):
-            logger.info("检测到游戏结束")
-            sp.set_stop(True)
-            break
-        time.sleep(15)
-
-
-
-# 启动游戏
-# noinspection PyUnresolvedReferences
-def start_game(dir_path):
-    """
-    "android:///"
-    "android://127.0.0.1:5037/emulator-5554"
-    "android://127.0.0.1:5037/emulator-5556"
-    """
-    sys.path.append('auto/王者荣耀/对战.air')
-    using('auto/王者荣耀/对战.air')
-    from 对战 import 离线5V5
-    logger.debug('start_game')
-    离线5V5(dir_path)
-    os.chdir(dir_path)
 def runs(dir_path, device_id, scrcpy_windows_name, flag_file_name):
     """
     运行多局游戏
     """
-    # 防止还没开始就结束了
-    global sp
 
-    # # 打开scrcpy
-    # th1 = threading.Thread(target=scrcpy)
-    # # 将线程设置为守护线程（daemon = True），当主线程结束时，守护线程会自动退出。
-    # th1.daemon = True
-    # th1.start()
+    # 启动游戏
+    # noinspection PyUnresolvedReferences
+    def start_game(dir_path):
+        """
+        "android:///"
+        "android://127.0.0.1:5037/emulator-5554"
+        "android://127.0.0.1:5037/emulator-5556"
+        """
+        sys.path.append('auto/王者荣耀/对战.air')
+        using('auto/王者荣耀/对战.air')
+        from 对战 import 离线5V5
+        logger.debug('start_game')
+        离线5V5(dir_path)
+        os.chdir(dir_path)
 
     for i in range(1, 2 * 24 * 3 + 1):
         logger.info(f'第{i}局游戏开始！')
@@ -585,7 +561,7 @@ def runs(dir_path, device_id, scrcpy_windows_name, flag_file_name):
         th2 = threading.Thread(target=训练数据截取, args=(device_id, scrcpy_windows_name, False, flag_file_name))
         th2.start()
         # 检测游戏是否结束，不停检测会卡死，emmmm
-        th3 = threading.Thread(target=check_game_status, args=(flag_file_name,))
+        th3 = threading.Thread(target=check_game_status, args=(sp, flag_file_name,))
         th3.start()
         th2.join()
         logger.info('AI打游戏线程done')
@@ -604,8 +580,6 @@ def singele_run_game(dir_path, device_id, scrcpy_windows_name, flag_file_name):
     """
     运行多局游戏
     """
-    # 防止还没开始就结束了
-    global sp
     for i in range(1, 2):
         logger.info(f'第{i}局游戏开始！')
         # 防止还没开始就结束了
@@ -624,7 +598,7 @@ def singele_run_game(dir_path, device_id, scrcpy_windows_name, flag_file_name):
         th2 = threading.Thread(target=训练数据截取, args=(device_id, scrcpy_windows_name, True, flag_file_name))
         th2.start()
         # 检测游戏是否结束，不停检测会卡死，emmmm
-        th3 = threading.Thread(target=check_game_status, args=(flag_file_name,))
+        th3 = threading.Thread(target=check_game_status, args=(sp, flag_file_name,))
         th3.start()
         th2.join()
         logger.info('AI打游戏线程done')

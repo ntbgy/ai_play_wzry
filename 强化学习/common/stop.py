@@ -18,3 +18,6 @@ class stop:
 
     def set_image_path(self, image_path=None):
         self.image_path = image_path
+
+
+sp = stop()
