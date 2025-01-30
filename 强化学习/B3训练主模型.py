@@ -103,7 +103,8 @@ for j in range(100):
                     回报[计数] = 得分
                 智能体.监督强化学习(device, 状态, 回报, 动作, 动作可能性, 评价)
                 if 计数 % 1 == 0:
-                    total_seconds(time_start_3)
+                    pass
+                    # total_seconds(time_start_3)
                 计数 += 1
                 i += 1
     total_seconds(time_start_2)

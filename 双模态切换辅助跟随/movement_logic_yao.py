@@ -223,6 +223,6 @@ if __name__ == "__main__":
     print("3秒后：程序开始")
     time.sleep(3)
     print("开始运行")
-    # start_next_game()
+    start_next_game()
     main()
     back_to_room()

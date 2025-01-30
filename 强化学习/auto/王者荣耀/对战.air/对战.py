@@ -179,8 +179,10 @@ def 在线发育路1v1(dir_path):
     ocr_now_touch('对战', dir_path, sleep_time=2)
     ocr_now_touch('1v1', dir_path, sleep_time=2)
     ocr_now_touch('人机', dir_path, sleep_time=2)
-    ocr_now_touch('发育路', dir_path, sleep_time=5)
-    ocr_now_touch('后羿', dir_path, sleep_time=2, show_result=True)
+    ocr_now_touch('发育路', dir_path, sleep_time=3)
+    # ocr_now_touch('后羿', dir_path, sleep_time=2, show_result=True)
+    touch((290, 1200))
+    sleep(2)
     ocr_now_touch('确定', dir_path, sleep_time=20, show_result=True)
 
 if __name__ == '__main__':
